@@ -1,0 +1,50 @@
+# Production overrides — used together with docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      # Let's Encrypt certificates
+      - letsencrypt:/etc/letsencrypt:ro
+      # ACME challenge webroot
+      - certbot-www:/var/www/certbot:ro
+      # Built frontend static files
+      - frontend-dist:/app/dist:ro
+    depends_on:
+      - backend
+
+  backend:
+    environment:
+      NODE_ENV: production
+    # No port exposed directly — traffic flows through Nginx
+
+  frontend:
+    # In production the frontend is built and served as static files by Nginx.
+    # We run a one-shot build container rather than the Vite dev server.
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - frontend-dist:/app/dist
+    command: sh -c "npm run build && echo 'Build complete'"
+    restart: "no"
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    # Run manually: docker compose run certbot certonly --webroot ...
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done"
+
+volumes:
+  letsencrypt:
+  certbot-www:
+  frontend-dist:
+  uploads-data:
+  db-data:
