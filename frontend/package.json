@@ -1,0 +1,23 @@
+{
+  "name": "bday-app-frontend",
+  "version": "1.0.0",
+  "description": "Birthday party photo app — frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.24.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.3.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
