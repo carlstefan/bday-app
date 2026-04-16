@@ -1,8 +1,32 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
+import HomePage    from './pages/HomePage.jsx'
+import LoginPage   from './pages/LoginPage.jsx'
+import UploadPage  from './pages/UploadPage.jsx'
+import GalleryPage from './pages/GalleryPage.jsx'
+
+// Admin page added in Phase 7
+// import AdminPage from './pages/AdminPage.jsx'
+
+import './index.css'
+
 export default function App() {
   return (
-    <div style={{ fontFamily: 'sans-serif', textAlign: 'center', padding: '4rem' }}>
-      <h1>🎉 Carl Stefan &amp; Trude — 50 år!</h1>
-      <p>Party photo app — coming soon.</p>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/"       element={<HomePage />} />
+          <Route path="/login"  element={<LoginPage />} />
+          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/gallery" element={
+            <ProtectedRoute>
+              <GalleryPage />
+            </ProtectedRoute>
+          } />
+          {/* /admin added in Phase 7 */}
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
