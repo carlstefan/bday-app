@@ -1,51 +1,143 @@
-// Gallery views are implemented in Phase 6.
-// This is a placeholder that confirms auth is working and photos load.
-
-import { useEffect, useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../api/client.js'
+import { useAuth } from '../context/AuthContext.jsx'
+import { usePhotos } from '../hooks/usePhotos.js'
+import { useViewport } from '../hooks/useViewport.js'
+import { SushiBar }       from '../components/gallery/SushiBar.jsx'
+import { PortraitView }   from '../components/gallery/PortraitView.jsx'
+import { FullScreenView } from '../components/gallery/FullScreenView.jsx'
+import { GridView }       from '../components/gallery/GridView.jsx'
 import styles from './GalleryPage.module.css'
 
 export default function GalleryPage() {
-  const [photos, setPhotos] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState('')
+  const { user }                        = useAuth()
+  const { photos, loading, error }      = usePhotos()
+  const { width, isPortrait }           = useViewport()
 
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [showFullScreen, setShowFullScreen] = useState(false)
+  const [showGrid, setShowGrid]         = useState(false)
+
+  // Clamp index when photos list changes
   useEffect(() => {
-    api.get('/api/photos?limit=50')
-      .then((d) => setPhotos(d.photos))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
+    if (photos.length > 0) {
+      setCurrentIndex((i) => Math.min(i, photos.length - 1))
+    }
+  }, [photos.length])
 
-  if (loading) return <div className={styles.page}><span>Laster bilder…</span></div>
-  if (error)   return <div className={styles.page}><span className={styles.error}>{error}</span></div>
+  const navigate = useCallback((idx) => {
+    setCurrentIndex(Math.max(0, Math.min(photos.length - 1, idx)))
+  }, [photos.length])
+
+  // Global keyboard navigation
+  useEffect(() => {
+    function onKey(e) {
+      if (showFullScreen) return  // FullScreenView handles its own keys
+      if (e.key === 'ArrowLeft')  navigate(currentIndex - 1)
+      if (e.key === 'ArrowRight') navigate(currentIndex + 1)
+      if (e.key === 'Escape' && showGrid) setShowGrid(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [currentIndex, showFullScreen, showGrid, navigate])
+
+  // ── Loading / error / empty ──────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className={styles.state}>
+        <div className={styles.spinner} aria-label="Loading" />
+        <span>Laster bilder…</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={styles.state}>
+        <p className={styles.errorMsg}>{error}</p>
+        <Link to="/" className={styles.homeLink}>← Tilbake til forsiden</Link>
+      </div>
+    )
+  }
+
+  if (photos.length === 0) {
+    return (
+      <div className={styles.state}>
+        <p>Ingen bilder ennå.</p>
+        <Link to="/upload" className={styles.uploadLink}>Last opp det første! →</Link>
+        <Link to="/" className={styles.homeLink}>← Forsiden</Link>
+      </div>
+    )
+  }
+
+  // ── View selection ───────────────────────────────────────────────────────
+  // Portrait phone or narrow viewport → PortraitView
+  const usePortrait = isPortrait && width < 480
+
+  // Grid toggle only available at 1024px+ and only in SushiBar mode
+  const canGrid = width >= 1024 && !usePortrait
 
   return (
-    <div className={styles.page}>
-      <h1 className={styles.title}>Galleri <span className={styles.count}>({photos.length})</span></h1>
-      <p className={styles.note}>Full galleri-visning kommer i neste fase. Her er en enkel oversikt:</p>
+    <div className={styles.gallery}>
 
-      <div className={styles.grid}>
-        {photos.map((photo) => (
-          <div key={photo.id} className={styles.thumb}>
-            <img
-              src={`/api/photos/${photo.id}/thumbnail`}
-              alt={photo.caption || photo.original_name}
-              loading="lazy"
-            />
-            {photo.uploader_name && (
-              <span className={styles.uploader}>{photo.uploader_name}</span>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {photos.length === 0 && (
-        <p className={styles.empty}>Ingen bilder ennå. <Link to="/upload">Last opp det første!</Link></p>
+      {/* Grid toggle button (1024px+ only) */}
+      {canGrid && (
+        <button
+          className={styles.gridToggle}
+          onClick={() => setShowGrid((g) => !g)}
+          aria-label={showGrid ? 'Switch to sushi bar view' : 'Switch to grid view'}
+          title={showGrid ? 'Sushi-visning' : 'Rutenett'}
+        >
+          {showGrid ? '▤ Sushi' : '⊞ Grid'}
+        </button>
       )}
 
-      <p className={styles.backLink}><Link to="/">← Tilbake</Link></p>
+      {/* ── Portrait phone view ─── */}
+      {usePortrait && !showFullScreen && (
+        <PortraitView
+          photos={photos}
+          currentIndex={currentIndex}
+          onNavigate={navigate}
+          onOpenFullScreen={() => setShowFullScreen(true)}
+        />
+      )}
+
+      {/* ── Sushi bar (default for 480px+) ─── */}
+      {!usePortrait && !showGrid && !showFullScreen && (
+        <SushiBar
+          photos={photos}
+          currentIndex={currentIndex}
+          onNavigate={navigate}
+          onOpenFullScreen={() => setShowFullScreen(true)}
+        />
+      )}
+
+      {/* ── Grid view (1024px+ toggle) ─── */}
+      {canGrid && showGrid && !showFullScreen && (
+        <GridView
+          photos={photos}
+          currentIndex={currentIndex}
+          onSelect={(idx) => {
+            navigate(idx)
+            setShowGrid(false)   // click → land in sushi bar at that photo
+          }}
+        />
+      )}
+
+      {/* ── Full-screen overlay (any view) ─── */}
+      {showFullScreen && (
+        <FullScreenView
+          photos={photos}
+          currentIndex={currentIndex}
+          onNavigate={navigate}
+          onClose={() => setShowFullScreen(false)}
+        />
+      )}
+
+      {/* Upload shortcut */}
+      <Link to="/upload" className={styles.uploadBtn} aria-label="Upload photos">
+        +
+      </Link>
     </div>
   )
 }
