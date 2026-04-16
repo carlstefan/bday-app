@@ -1,0 +1,124 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.2s;
+}
+
+.hidden {
+  opacity: 0.55;
+}
+
+.flagged {
+  outline: 2px solid #e67e22;
+}
+
+.imgWrap {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hiddenBadge,
+.flagBadge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.hiddenBadge {
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+}
+
+.flagBadge {
+  top: 6px;
+  right: 6px;
+  left: auto;
+  background: #e67e22;
+  color: #fff;
+}
+
+.meta {
+  padding: 0.5rem 0.6rem 0;
+  flex: 1;
+}
+
+.uploader {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.caption {
+  font-size: 0.78rem;
+  color: #777;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.toggleBtn {
+  margin: 0.6rem;
+  padding: 0.4rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.toggleBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.hideBtn {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.hideBtn:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.unhideBtn {
+  background: #e8f4fd;
+  color: #2980b9;
+}
+
+.unhideBtn:hover:not(:disabled) {
+  background: #d0e8f8;
+}
+
+.empty {
+  color: #888;
+  font-style: italic;
+}

@@ -5,9 +5,7 @@ import HomePage    from './pages/HomePage.jsx'
 import LoginPage   from './pages/LoginPage.jsx'
 import UploadPage  from './pages/UploadPage.jsx'
 import GalleryPage from './pages/GalleryPage.jsx'
-
-// Admin page added in Phase 7
-// import AdminPage from './pages/AdminPage.jsx'
+import AdminPage   from './pages/AdminPage.jsx'
 
 import './index.css'
 
@@ -24,7 +22,11 @@ export default function App() {
               <GalleryPage />
             </ProtectedRoute>
           } />
-          {/* /admin added in Phase 7 */}
+          <Route path="/admin" element={
+            <ProtectedRoute adminOnly>
+              <AdminPage />
+            </ProtectedRoute>
+          } />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
