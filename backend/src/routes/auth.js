@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import passport from '../auth/passport.js'
+import { loginLimiter } from '../middleware/rateLimiter.js'
+import { loginSchema } from '../schemas/auth.js'
 
 const router = Router()
 const authMode = process.env.AUTH_MODE || 'local'
@@ -19,7 +21,13 @@ router.get('/me', (req, res) => {
 
 // ── POST /api/auth/login (local only) ──────────────────────────────────────
 if (authMode === 'local') {
-  router.post('/login', (req, res, next) => {
+  router.post('/login', loginLimiter, (req, res, next) => {
+    const parse = loginSchema.safeParse(req.body)
+    if (!parse.success) {
+      return res.status(400).json({ error: 'Invalid username or password.' })
+    }
+    // Replace req.body with sanitised values so Passport reads them
+    req.body = parse.data
     passport.authenticate('local', (err, user, info) => {
       if (err) return next(err)
       if (!user) return res.status(401).json({ error: info?.message || 'Login failed.' })

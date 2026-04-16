@@ -7,6 +7,7 @@ import { handleUpload } from '../middleware/upload.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { processImage } from '../services/imageProcessor.js'
 import { uploadBodySchema, captionUpdateSchema, photoIdParamSchema } from '../schemas/photos.js'
+import { uploadLimiter } from '../middleware/rateLimiter.js'
 
 const router = Router()
 
@@ -14,7 +15,7 @@ const UPLOADS_PATH = () => process.env.UPLOADS_PATH || path.join(process.cwd(), 
 
 // ── POST /api/photos ─────────────────────────────────────────────────────────
 // Anonymous users may upload; auth is optional
-router.post('/', diskCheck, handleUpload, async (req, res, next) => {
+router.post('/', uploadLimiter, diskCheck, handleUpload, async (req, res, next) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded.' })
