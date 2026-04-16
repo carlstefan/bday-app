@@ -1,12 +1,13 @@
 import { Router } from 'express'
 import authRouter from './auth.js'
+import photosRouter from './photos.js'
 
 const router = Router()
 
 router.use('/auth', authRouter)
+router.use('/photos', photosRouter)
 
-// Photos and admin routes added in Phase 4 and Phase 7
-// router.use('/photos', photosRouter)
+// Admin routes added in Phase 7
 // router.use('/admin', adminRouter)
 
 export default router
