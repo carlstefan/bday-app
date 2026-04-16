@@ -11,12 +11,21 @@ import styles from './GalleryPage.module.css'
 
 export default function GalleryPage() {
   const { user }                        = useAuth()
-  const { photos, loading, error }      = usePhotos()
+  const { photos, loading, error, setPhotos } = usePhotos()
   const { width, isPortrait }           = useViewport()
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showFullScreen, setShowFullScreen] = useState(false)
   const [showGrid, setShowGrid]         = useState(false)
+
+  function handlePhotoUpdate(photoId, patch) {
+    setPhotos((prev) => prev.map((p) => p.id === photoId ? { ...p, ...patch } : p))
+  }
+
+  function handlePhotoFlagged(photoId) {
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId))
+    setCurrentIndex((i) => Math.max(0, Math.min(i, photos.length - 2)))
+  }
 
   // Clamp index when photos list changes
   useEffect(() => {
@@ -109,6 +118,8 @@ export default function GalleryPage() {
           currentIndex={currentIndex}
           onNavigate={navigate}
           onOpenFullScreen={() => setShowFullScreen(true)}
+          onPhotoUpdate={handlePhotoUpdate}
+          onPhotoFlagged={handlePhotoFlagged}
         />
       )}
 

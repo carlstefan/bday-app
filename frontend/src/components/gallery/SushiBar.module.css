@@ -141,6 +141,14 @@
   background: rgba(0, 0, 0, 0.7);
 }
 
+/* ── Flag button wrapper ───────────────────────────────────────────────── */
+
+.flagWrap {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+}
+
 /* ── Counter ───────────────────────────────────────────────────────────── */
 
 .counter {

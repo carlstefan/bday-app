@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { PhotoImage } from './PhotoImage.jsx'
-import { useSwipe } from '../../hooks/useSwipe.js'
-import { useViewport } from '../../hooks/useViewport.js'
+import { PhotoImage }    from './PhotoImage.jsx'
+import { CaptionEditor } from './CaptionEditor.jsx'
+import { FlagButton }    from './FlagButton.jsx'
+import { useSwipe }      from '../../hooks/useSwipe.js'
+import { useViewport }   from '../../hooks/useViewport.js'
+import { useAuth }       from '../../context/AuthContext.jsx'
 import styles from './SushiBar.module.css'
 
 /** How many photos to show at each breakpoint (always odd). */
@@ -11,8 +14,9 @@ function visibleCount(width) {
   return 3
 }
 
-export function SushiBar({ photos, currentIndex, onNavigate, onOpenFullScreen }) {
+export function SushiBar({ photos, currentIndex, onNavigate, onOpenFullScreen, onPhotoUpdate, onPhotoFlagged }) {
   const { width } = useViewport()
+  const { user }  = useAuth()
   const containerRef = useRef(null)
 
   const count    = visibleCount(width)
@@ -96,13 +100,30 @@ export function SushiBar({ photos, currentIndex, onNavigate, onOpenFullScreen })
               />
             </div>
 
-            {isCenter && (photo.uploader_name || photo.caption) && (
+            {isCenter && (
               <div className={styles.info}>
                 {photo.uploader_name && (
                   <span className={styles.name}>{photo.uploader_name}</span>
                 )}
-                {photo.caption && (
+
+                {/* Caption editor for own photos; plain text for others */}
+                {user && photo.user_id === user.id ? (
+                  <CaptionEditor
+                    photo={photo}
+                    onSaved={(id, caption) => onPhotoUpdate?.(id, { caption })}
+                  />
+                ) : photo.caption ? (
                   <p className={styles.caption}>{photo.caption}</p>
+                ) : null}
+
+                {/* Flag button: shown for authenticated users on other people's photos */}
+                {user && photo.user_id !== user.id && (
+                  <div className={styles.flagWrap}>
+                    <FlagButton
+                      photo={photo}
+                      onFlagged={(id) => onPhotoFlagged?.(id)}
+                    />
+                  </div>
                 )}
               </div>
             )}
