@@ -1,13 +1,12 @@
-// Entry point — will be expanded in Phase 3
-import express from 'express'
+import { initDatabase } from './db/index.js'
 
-const app = express()
+// Bootstrap database (schema + seed) before starting the server
+initDatabase()
+
+// App is defined in app.js — imported after DB is ready
+const { default: app } = await import('./app.js')
+
 const port = process.env.PORT || 3001
-
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
-
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Backend listening on port ${port}`)
+  console.log(`Backend listening on port ${port} (AUTH_MODE=${process.env.AUTH_MODE || 'local'})`)
 })
