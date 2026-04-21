@@ -2,6 +2,7 @@ import { Router } from 'express'
 import passport from '../auth/passport.js'
 import { loginLimiter } from '../middleware/rateLimiter.js'
 import { loginSchema } from '../schemas/auth.js'
+import { logEvent } from '../services/auditLog.js'
 
 const router = Router()
 const authMode = process.env.AUTH_MODE || 'local'
@@ -30,9 +31,13 @@ if (authMode === 'local') {
     req.body = parse.data
     passport.authenticate('local', (err, user, info) => {
       if (err) return next(err)
-      if (!user) return res.status(401).json({ error: info?.message || 'Login failed.' })
+      if (!user) {
+        logEvent('login', null, req.ip, { method: 'local', success: false, username: parse.data.username })
+        return res.status(401).json({ error: info?.message || 'Login failed.' })
+      }
       req.logIn(user, (err) => {
         if (err) return next(err)
+        logEvent('login', user.id, req.ip, { method: 'local', success: true })
         const { id, display_name, email, is_admin } = user
         res.json({ id, display_name, email, is_admin: Boolean(is_admin) })
       })

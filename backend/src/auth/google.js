@@ -1,5 +1,6 @@
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { db } from '../db/index.js'
+import { logEvent } from '../services/auditLog.js'
 
 export function registerGoogleStrategy(passport) {
   const adminEmails = (process.env.ADMIN_EMAILS || '')
@@ -13,8 +14,9 @@ export function registerGoogleStrategy(passport) {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        passReqToCallback: true,
       },
-      (_accessToken, _refreshToken, profile, done) => {
+      (req, _accessToken, _refreshToken, profile, done) => {
         try {
           const googleId = profile.id
           const email = profile.emails?.[0]?.value || null
@@ -30,6 +32,7 @@ export function registerGoogleStrategy(passport) {
               db.prepare('UPDATE users SET is_admin = 1 WHERE id = ?').run(user.id)
               user.is_admin = 1
             }
+            logEvent('login', user.id, req.ip, { method: 'google', success: true })
           } else {
             // Create new user
             const result = db
@@ -40,6 +43,7 @@ export function registerGoogleStrategy(passport) {
               .run({ google_id: googleId, display_name: displayName, email, is_admin: isAdmin })
 
             user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid)
+            logEvent('register', user.id, req.ip, { method: 'google', email, display_name: displayName })
           }
 
           return done(null, {

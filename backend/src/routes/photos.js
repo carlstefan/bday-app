@@ -6,6 +6,7 @@ import { diskCheck } from '../middleware/diskCheck.js'
 import { handleUpload } from '../middleware/upload.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { processImage } from '../services/imageProcessor.js'
+import { logEvent } from '../services/auditLog.js'
 import { uploadBodySchema, captionUpdateSchema, photoIdParamSchema } from '../schemas/photos.js'
 import { uploadLimiter } from '../middleware/rateLimiter.js'
 
@@ -13,7 +14,7 @@ const router = Router()
 
 const UPLOADS_PATH = () => process.env.UPLOADS_PATH || path.join(process.cwd(), 'uploads')
 
-// ── POST /api/photos ─────────────────────────────────────────────────────────
+// ── POST /api/photos ──────────────────────────────────────────────────────────
 // Anonymous users may upload; auth is optional
 router.post('/', uploadLimiter, diskCheck, handleUpload, async (req, res, next) => {
   try {
@@ -21,7 +22,6 @@ router.post('/', uploadLimiter, diskCheck, handleUpload, async (req, res, next) 
       return res.status(400).json({ error: 'No files uploaded.' })
     }
 
-    // Validate text fields
     const bodyParse = uploadBodySchema.safeParse(req.body)
     if (!bodyParse.success) {
       return res.status(400).json({ error: bodyParse.error.errors[0].message })
@@ -53,15 +53,13 @@ router.post('/', uploadLimiter, diskCheck, handleUpload, async (req, res, next) 
           captured_at: capturedAt || null,
         })
 
-      results.push({
-        id: result.lastInsertRowid,
-        filename,
-        original_name: file.originalname,
-        uploader_name: uploader_name || null,
-        caption: caption || null,
-        captured_at: capturedAt || null,
-      })
+      results.push({ id: result.lastInsertRowid, filename })
     }
+
+    logEvent('upload', userId, req.ip, {
+      photo_ids: results.map((r) => r.id),
+      count: results.length,
+    })
 
     res.status(201).json({ uploaded: results.length, photos: results })
   } catch (err) {
@@ -69,10 +67,12 @@ router.post('/', uploadLimiter, diskCheck, handleUpload, async (req, res, next) 
   }
 })
 
-// ── GET /api/photos ──────────────────────────────────────────────────────────
-// Authenticated guests only; returns non-hidden, non-pending-deletion photos
+// ── GET /api/photos ───────────────────────────────────────────────────────────
+// Authenticated guests only; returns non-hidden photos sorted by capture time.
+// Visibility is controlled solely by is_hidden — own-photo flags set is_hidden=1
+// at flag time; other-user flags leave the photo visible until admin acts.
 router.get('/', requireAuth, (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1)
+  const page  = Math.max(1, parseInt(req.query.page)  || 1)
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50))
   const offset = (page - 1) * limit
 
@@ -82,35 +82,28 @@ router.get('/', requireAuth, (req, res) => {
               p.user_id, p.captured_at, p.created_at
        FROM photos p
        WHERE p.is_hidden = 0
-         AND NOT EXISTS (
-           SELECT 1 FROM deletion_requests dr
-           WHERE dr.photo_id = p.id AND dr.status = 'pending'
-         )
        ORDER BY COALESCE(p.captured_at, p.created_at) ASC
        LIMIT ? OFFSET ?`
     )
     .all(limit, offset)
 
   const total = db
-    .prepare(
-      `SELECT COUNT(*) as count FROM photos p
-       WHERE p.is_hidden = 0
-         AND NOT EXISTS (
-           SELECT 1 FROM deletion_requests dr
-           WHERE dr.photo_id = p.id AND dr.status = 'pending'
-         )`
-    )
+    .prepare(`SELECT COUNT(*) as count FROM photos WHERE is_hidden = 0`)
     .get().count
 
   res.json({ photos, total, page, limit })
 })
 
-// ── GET /api/photos/:id/thumbnail ────────────────────────────────────────────
+// ── GET /api/photos/:id/thumbnail ─────────────────────────────────────────────
+// Admins may fetch thumbnails for hidden photos (moderation / hidden gallery)
 router.get('/:id/thumbnail', requireAuth, (req, res) => {
   const paramParse = photoIdParamSchema.safeParse(req.params)
   if (!paramParse.success) return res.status(400).json({ error: 'Invalid photo ID.' })
 
-  const photo = db.prepare('SELECT filename FROM photos WHERE id = ? AND is_hidden = 0').get(paramParse.data.id)
+  const photo = req.user.is_admin
+    ? db.prepare('SELECT filename FROM photos WHERE id = ?').get(paramParse.data.id)
+    : db.prepare('SELECT filename FROM photos WHERE id = ? AND is_hidden = 0').get(paramParse.data.id)
+
   if (!photo) return res.status(404).json({ error: 'Photo not found.' })
 
   const uuid = path.parse(photo.filename).name
@@ -123,19 +116,27 @@ router.get('/:id/thumbnail', requireAuth, (req, res) => {
   fs.createReadStream(thumbnailPath).pipe(res)
 })
 
-// ── GET /api/photos/:id/image ────────────────────────────────────────────────
+// ── GET /api/photos/:id/image ──────────────────────────────────────────────────
+// Admins may fetch originals for hidden photos
 router.get('/:id/image', requireAuth, (req, res) => {
   const paramParse = photoIdParamSchema.safeParse(req.params)
   if (!paramParse.success) return res.status(400).json({ error: 'Invalid photo ID.' })
 
-  const photo = db.prepare('SELECT filename FROM photos WHERE id = ? AND is_hidden = 0').get(paramParse.data.id)
+  const photo = req.user.is_admin
+    ? db.prepare('SELECT filename FROM photos WHERE id = ?').get(paramParse.data.id)
+    : db.prepare('SELECT filename FROM photos WHERE id = ? AND is_hidden = 0').get(paramParse.data.id)
+
   if (!photo) return res.status(404).json({ error: 'Photo not found.' })
 
   const imagePath = path.join(UPLOADS_PATH(), photo.filename)
   if (!fs.existsSync(imagePath)) return res.status(404).json({ error: 'Image file not found.' })
 
   const ext = path.extname(photo.filename).toLowerCase()
-  const mimeTypes = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.heic': 'image/heic', '.heif': 'image/heif' }
+  const mimeTypes = {
+    '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+    '.png': 'image/png',  '.webp': 'image/webp',
+    '.heic': 'image/heic', '.heif': 'image/heif',
+  }
   const contentType = mimeTypes[ext] || 'application/octet-stream'
 
   res.setHeader('Content-Type', contentType)
@@ -144,7 +145,7 @@ router.get('/:id/image', requireAuth, (req, res) => {
   fs.createReadStream(imagePath).pipe(res)
 })
 
-// ── PATCH /api/photos/:id/caption ────────────────────────────────────────────
+// ── PATCH /api/photos/:id/caption ─────────────────────────────────────────────
 router.patch('/:id/caption', requireAuth, (req, res) => {
   const paramParse = photoIdParamSchema.safeParse(req.params)
   if (!paramParse.success) return res.status(400).json({ error: 'Invalid photo ID.' })
@@ -152,7 +153,7 @@ router.patch('/:id/caption', requireAuth, (req, res) => {
   const bodyParse = captionUpdateSchema.safeParse(req.body)
   if (!bodyParse.success) return res.status(400).json({ error: bodyParse.error.errors[0].message })
 
-  const photo = db.prepare('SELECT id, user_id FROM photos WHERE id = ?').get(paramParse.data.id)
+  const photo = db.prepare('SELECT id, user_id, caption FROM photos WHERE id = ?').get(paramParse.data.id)
   if (!photo) return res.status(404).json({ error: 'Photo not found.' })
 
   if (photo.user_id !== req.user.id) {
@@ -161,33 +162,58 @@ router.patch('/:id/caption', requireAuth, (req, res) => {
 
   db.prepare('UPDATE photos SET caption = ? WHERE id = ?').run(bodyParse.data.caption, photo.id)
 
+  logEvent('update_caption', req.user.id, req.ip, {
+    photo_id: photo.id,
+    old_caption: photo.caption,
+    new_caption: bodyParse.data.caption,
+  })
+
   res.json({ id: photo.id, caption: bodyParse.data.caption })
 })
 
-// ── POST /api/photos/:id/flag ────────────────────────────────────────────────
+// ── POST /api/photos/:id/flag ──────────────────────────────────────────────────
+// FR-G08: own-photo flags auto-hide; other-user flags stay visible until admin acts.
 router.post('/:id/flag', requireAuth, (req, res) => {
   const paramParse = photoIdParamSchema.safeParse(req.params)
   if (!paramParse.success) return res.status(400).json({ error: 'Invalid photo ID.' })
 
   const photoId = paramParse.data.id
-  const photo = db.prepare('SELECT id FROM photos WHERE id = ? AND is_hidden = 0').get(photoId)
+
+  // Only visible photos can be flagged
+  const photo = db.prepare('SELECT id, user_id FROM photos WHERE id = ? AND is_hidden = 0').get(photoId)
   if (!photo) return res.status(404).json({ error: 'Photo not found.' })
 
   const existing = db
     .prepare("SELECT id FROM deletion_requests WHERE photo_id = ? AND status = 'pending'")
     .get(photoId)
-
   if (existing) {
     return res.status(409).json({ error: 'This photo has already been flagged for review.' })
   }
 
-  // Hide immediately and create deletion request
-  db.prepare('UPDATE photos SET is_hidden = 1 WHERE id = ?').run(photoId)
-  db.prepare(
-    `INSERT INTO deletion_requests (photo_id, flagged_by_user_id) VALUES (?, ?)`
-  ).run(photoId, req.user.id)
+  // Determine ownership: null user_id (anonymous upload) is never "own"
+  const isOwnPhoto = photo.user_id !== null && photo.user_id === req.user.id ? 1 : 0
 
-  res.status(201).json({ message: 'Photo flagged for admin review.' })
+  db.transaction(() => {
+    if (isOwnPhoto) {
+      // Own photo: hide immediately so it disappears from all guest views
+      db.prepare('UPDATE photos SET is_hidden = 1 WHERE id = ?').run(photoId)
+    }
+    db.prepare(
+      `INSERT INTO deletion_requests (photo_id, flagged_by_user_id, is_own_photo) VALUES (?, ?, ?)`
+    ).run(photoId, req.user.id, isOwnPhoto)
+  })()
+
+  logEvent('flag_deletion', req.user.id, req.ip, {
+    photo_id: photoId,
+    is_own_photo: Boolean(isOwnPhoto),
+    auto_hidden:  Boolean(isOwnPhoto),
+  })
+
+  const message = isOwnPhoto
+    ? 'Bildet ditt er skjult og sendt til admin for gjennomgang.'
+    : 'Bildet er rapportert og vil bli gjennomgått av en admin.'
+
+  res.status(201).json({ message, auto_hidden: Boolean(isOwnPhoto) })
 })
 
 export default router

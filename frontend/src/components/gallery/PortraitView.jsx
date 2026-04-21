@@ -1,11 +1,15 @@
 import { useState, useRef } from 'react'
 import { PhotoImage } from './PhotoImage.jsx'
+import { ActionMenu }   from './ActionMenu.jsx'
+import { ReportButton } from './ReportButton.jsx'
 import { useSwipe } from '../../hooks/useSwipe.js'
+import { useAuth }  from '../../context/AuthContext.jsx'
 import styles from './PortraitView.module.css'
 
 const GRID_COLS = 2
 
-export function PortraitView({ photos, currentIndex, onNavigate, onOpenFullScreen }) {
+export function PortraitView({ photos, currentIndex, onNavigate, onOpenFullScreen, onPhotoUpdate, onPhotoFlagged }) {
+  const { user } = useAuth()
   const [showGrid, setShowGrid] = useState(false)
   const gridRef = useRef(null)
 
@@ -62,6 +66,8 @@ export function PortraitView({ photos, currentIndex, onNavigate, onOpenFullScree
   }
 
   // ── Single-photo view ────────────────────────────────────────────────────
+  const isOwnPhoto = user && photo.user_id === user.id
+
   return (
     <div
       className={styles.portrait}
@@ -74,6 +80,21 @@ export function PortraitView({ photos, currentIndex, onNavigate, onOpenFullScree
         className={styles.photo}
         draggable={false}
       />
+
+      {/* Action controls — stop propagation so taps don't open full-screen */}
+      {user && (
+        <div className={styles.actionsWrap} onClick={(e) => e.stopPropagation()}>
+          {isOwnPhoto ? (
+            <ActionMenu
+              photo={photo}
+              onEditCaption={() => {/* caption editing not shown in portrait view */}}
+              onFlagged={(id) => onPhotoFlagged?.(id)}
+            />
+          ) : (
+            <ReportButton photo={photo} />
+          )}
+        </div>
+      )}
 
       {/* Swipe-down hint */}
       <div className={styles.swipeHint} aria-hidden>

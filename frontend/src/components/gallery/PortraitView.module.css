@@ -49,6 +49,15 @@
   pointer-events: none;
 }
 
+/* ── Action controls (ActionMenu / ReportButton) ─────────────────────────── */
+
+.actionsWrap {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 5;
+}
+
 /* ── Mini-grid view ─────────────────────────────────────────────────────── */
 
 .gridContainer {

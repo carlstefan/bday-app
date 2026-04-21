@@ -32,14 +32,40 @@
   margin: 0.15rem 0 0;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .galleryLink {
   font-size: 0.88rem;
   color: #888;
   text-decoration: none;
   margin-top: 0.25rem;
+  white-space: nowrap;
 }
 
 .galleryLink:hover {
+  color: #333;
+}
+
+/* FR-A05: Hidden gallery shortcut */
+.hiddenGalleryLink {
+  font-size: 0.82rem;
+  color: #888;
+  text-decoration: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  padding: 0.25rem 0.65rem;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.hiddenGalleryLink:hover {
+  background: #e0e0e0;
   color: #333;
 }
 

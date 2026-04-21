@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { api } from '../../api/client.js'
 import styles from './DeletionQueue.module.css'
 
+// FR-A02: Updated action keys to match renamed backend endpoints
 const ACTIONS = [
-  { key: 'accept',      label: 'Slett bildet',   className: 'danger' },
-  { key: 'deny',        label: 'Behold + vis',   className: 'restore' },
-  { key: 'leave-hidden', label: 'Behold skjult', className: 'neutral' },
+  { key: 'delete', label: 'Slett bildet',   className: 'danger'   },
+  { key: 'reject', label: 'Avvis + gjenopprett', className: 'restore' },
+  { key: 'hide',   label: 'Behold skjult', className: 'neutral'  },
 ]
 
 export function DeletionQueue({ requests, onResolved }) {
@@ -13,11 +14,11 @@ export function DeletionQueue({ requests, onResolved }) {
 
   async function resolve(requestId, action) {
     if (busy[requestId]) return
-    if (action === 'accept' && !confirm('Slett bildet permanent?')) return
+    if (action === 'delete' && !confirm('Slett bildet permanent?')) return
     setBusy((b) => ({ ...b, [requestId]: true }))
     try {
       await api.patch(`/api/admin/deletion-requests/${requestId}/${action}`)
-      onResolved(requestId)
+      onResolved(requestId, action)
     } catch (err) {
       alert(err.message)
       setBusy((b) => ({ ...b, [requestId]: false }))
@@ -49,6 +50,19 @@ export function DeletionQueue({ requests, onResolved }) {
               <span className={styles.flagger}>
                 Flagget av {req.flagged_by_name} — {new Date(req.flagged_at).toLocaleDateString('nb-NO')}
               </span>
+              {/* FR-A02: Show ownership and current visibility context */}
+              <div className={styles.badges}>
+                {req.is_own_photo ? (
+                  <span className={`${styles.badge} ${styles.badgeOwn}`}>Eget bilde</span>
+                ) : (
+                  <span className={`${styles.badge} ${styles.badgeOther}`}>Andres bilde</span>
+                )}
+                {req.is_hidden ? (
+                  <span className={`${styles.badge} ${styles.badgeHidden}`}>Skjult</span>
+                ) : (
+                  <span className={`${styles.badge} ${styles.badgeVisible}`}>Synlig</span>
+                )}
+              </div>
             </div>
 
             <div className={styles.actions}>

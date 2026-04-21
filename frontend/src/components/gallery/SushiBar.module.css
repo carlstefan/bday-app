@@ -1,7 +1,9 @@
+/* ── Bar (viewport-filling container) ─────────────────────────────────── */
+
 .bar {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   height: 100vh;
   background: #0e0e0e;
@@ -9,29 +11,31 @@
   position: relative;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: pan-y; /* allow vertical scroll on page but we preventDefault wheel */
+  touch-action: pan-y;
 }
 
-/* ── Slots ─────────────────────────────────────────────────────────────── */
+/* ── Sliding strip ─────────────────────────────────────────────────────── */
+
+.strip {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 10px;          /* keep in sync with GAP constant in SushiBar.jsx */
+  will-change: transform;
+}
+
+/* ── Individual slots ──────────────────────────────────────────────────── */
 
 .slot {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: flex 0.25s ease, height 0.25s ease, opacity 0.25s ease;
+  height: 78%;
   position: relative;
   cursor: pointer;
-  /* distance-based sizing via CSS custom property --dist */
-  flex: calc(3 - var(--dist, 0) * 0.7);
-  height: calc((85 - var(--dist, 0) * 14) * 1%);
-  opacity: calc(1 - var(--dist, 0) * 0.18);
+  /* Scale and opacity transitions for the "settle" effect after each slide */
+  transition: transform 0.22s ease, opacity 0.22s ease;
 }
 
 .center {
-  flex: 3;
-  height: 85%;
-  opacity: 1;
   cursor: zoom-in;
 }
 
@@ -54,23 +58,6 @@
   object-fit: cover;
   display: block;
   pointer-events: none;
-  /* For full PhotoImage wrapper */
-  position: static !important;
-}
-
-/* Override PhotoImage's fullWrapper positioning in this context */
-.slot .imgWrap > div {
-  position: static;
-  width: 100%;
-  height: 100%;
-}
-
-.slot .imgWrap > div > img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 /* ── Info overlay (centre only) ────────────────────────────────────────── */
@@ -100,7 +87,6 @@
   color: #fff;
   font-size: 0.92rem;
   line-height: 1.4;
-  /* Clamp to 2 lines */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -141,12 +127,13 @@
   background: rgba(0, 0, 0, 0.7);
 }
 
-/* ── Flag button wrapper ───────────────────────────────────────────────── */
+/* ── Action controls wrapper (ActionMenu / ReportButton) ───────────────── */
 
-.flagWrap {
+.actionsWrap {
   position: absolute;
   top: 0.6rem;
   right: 0.6rem;
+  pointer-events: all;
 }
 
 /* ── Counter ───────────────────────────────────────────────────────────── */
@@ -160,4 +147,5 @@
   font-size: 0.78rem;
   letter-spacing: 0.05em;
   pointer-events: none;
+  z-index: 10;
 }

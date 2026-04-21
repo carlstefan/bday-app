@@ -5,9 +5,14 @@ import styles from './CaptionEditor.module.css'
 /**
  * Shown on the sushi bar centre photo when the viewer owns the photo.
  * Displays caption as tap-to-edit inline textarea.
+ *
+ * @param {object}   photo       The photo object
+ * @param {function} onSaved     Called with (id, caption) after a successful save
+ * @param {boolean}  autoEdit    If true, start directly in edit mode (FR-G10 action menu)
+ * @param {function} onCancel    Called when the user cancels (in addition to closing the editor)
  */
-export function CaptionEditor({ photo, onSaved }) {
-  const [editing, setEditing]   = useState(false)
+export function CaptionEditor({ photo, onSaved, autoEdit = false, onCancel: onCancelProp }) {
+  const [editing, setEditing]   = useState(autoEdit)
   const [value, setValue]       = useState(photo.caption || '')
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState('')
@@ -17,7 +22,7 @@ export function CaptionEditor({ photo, onSaved }) {
     if (editing) textareaRef.current?.focus()
   }, [editing])
 
-  // Keep value in sync if parent updates photo
+  // Keep value in sync if parent updates photo (only when not editing)
   useEffect(() => {
     if (!editing) setValue(photo.caption || '')
   }, [photo.caption, editing])
@@ -40,6 +45,7 @@ export function CaptionEditor({ photo, onSaved }) {
     setValue(photo.caption || '')
     setError('')
     setEditing(false)
+    onCancelProp?.()
   }
 
   function onKeyDown(e) {

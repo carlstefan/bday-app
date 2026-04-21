@@ -1,8 +1,9 @@
-import { runSchema } from './schema.js'
+import { runSchema, runMigrations } from './schema.js'
 import { runSeed } from './seed.js'
 
 export function initDatabase() {
   runSchema()
+  runMigrations()
   runSeed()
 }
 

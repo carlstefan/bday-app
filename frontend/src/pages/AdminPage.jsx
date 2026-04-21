@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useAdminBadge } from '../hooks/useAdminBadge.js'
 import { ModerationGrid } from '../components/admin/ModerationGrid.jsx'
 import { DeletionQueue }  from '../components/admin/DeletionQueue.jsx'
 import { DownloadButton } from '../components/admin/DownloadButton.jsx'
@@ -16,6 +17,9 @@ export default function AdminPage() {
   const [requests, setRequests]         = useState([])
   const [loadingPhotos, setLoadingPhotos]     = useState(true)
   const [loadingRequests, setLoadingRequests] = useState(true)
+
+  // FR-A04: Live badge count from hook (supplements local requests state)
+  const { pendingCount: livePendingCount } = useAdminBadge(Boolean(user?.is_admin))
 
   useEffect(() => {
     api.get('/api/admin/photos')
@@ -33,15 +37,28 @@ export default function AdminPage() {
     setPhotos((prev) => prev.map((p) => p.id === photoId ? { ...p, ...patch } : p))
   }
 
-  function handleRequestResolved(requestId) {
-    setRequests((prev) => prev.filter((r) => r.id !== requestId))
-    // Remove photo from moderation grid if it was accepted (deleted)
+  // FR-A02: Handle the three moderation actions with correct local-state updates
+  function handleRequestResolved(requestId, action) {
     const req = requests.find((r) => r.id === requestId)
-    if (req) {
+    setRequests((prev) => prev.filter((r) => r.id !== requestId))
+
+    if (!req) return
+
+    if (action === 'delete') {
+      // Photo was permanently deleted — remove from moderation grid
       setPhotos((prev) => prev.filter((p) => p.id !== req.photo_id))
+    } else if (action === 'reject') {
+      // Rejection: if own photo, it was restored (is_hidden → 0); otherwise unchanged
+      if (req.is_own_photo) {
+        setPhotos((prev) => prev.map((p) => p.id === req.photo_id ? { ...p, is_hidden: 0 } : p))
+      }
+    } else if (action === 'hide') {
+      // Keep hidden — ensure is_hidden = 1 in local state
+      setPhotos((prev) => prev.map((p) => p.id === req.photo_id ? { ...p, is_hidden: 1 } : p))
     }
   }
 
+  // Local pending count (from loaded requests list, for the tab badge)
   const pendingCount = requests.length
 
   return (
@@ -52,7 +69,17 @@ export default function AdminPage() {
             <h1 className={styles.title}>Admin</h1>
             <p className={styles.subtitle}>Hei, {user?.display_name}!</p>
           </div>
-          <Link to="/gallery" className={styles.galleryLink}>← Galleri</Link>
+          <div className={styles.headerActions}>
+            {/* FR-A05: Link to hidden gallery */}
+            <Link
+              to="/gallery?mode=hidden"
+              className={styles.hiddenGalleryLink}
+              title="Se skjulte bilder"
+            >
+              🙈 Skjulte bilder
+            </Link>
+            <Link to="/gallery" className={styles.galleryLink}>← Galleri</Link>
+          </div>
         </div>
 
         <nav className={styles.tabs}>
@@ -63,6 +90,7 @@ export default function AdminPage() {
               onClick={() => setTab(i)}
             >
               {label}
+              {/* FR-A04: badge on deletion requests tab */}
               {i === 1 && pendingCount > 0 && (
                 <span className={styles.badge}>{pendingCount}</span>
               )}

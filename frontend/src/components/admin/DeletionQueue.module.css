@@ -111,3 +111,26 @@
   font-style: italic;
   padding: 1rem 0;
 }
+
+/* ── FR-A02: Ownership + visibility badges ──────────────────────────────── */
+
+.badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badgeOwn    { background: #fff3cd; color: #856404; }
+.badgeOther  { background: #e2e3e5; color: #41464b; }
+.badgeHidden { background: #f8d7da; color: #842029; }
+.badgeVisible { background: #d1e7dd; color: #0a3622; }

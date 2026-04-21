@@ -8,6 +8,10 @@ import { apiLimiter } from './middleware/rateLimiter.js'
 
 const app = express()
 
+// Trust the first proxy (Nginx) — makes req.ip the real client IP and
+// fixes ERR_ERL_UNEXPECTED_X_FORWARDED_FOR from express-rate-limit
+app.set('trust proxy', 1)
+
 // ── Security headers ────────────────────────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: {
