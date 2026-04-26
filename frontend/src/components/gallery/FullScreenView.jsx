@@ -56,7 +56,7 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose }) {
         aria-hidden
       />
 
-      {/* Image */}
+      {/* Image — also handles tap-to-close when not zoomed (covers full viewport) */}
       <div
         className={styles.imageWrap}
         style={{
@@ -64,6 +64,7 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose }) {
           cursor:       isZoomed ? 'grab' : 'zoom-out',
           touchAction:  'none',
         }}
+        onClick={!isZoomed ? onClose : undefined}
       >
         <PhotoImage
           photo={photo}

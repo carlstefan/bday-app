@@ -50,18 +50,41 @@ Owner: Carl Stefan Grøtter (use both names — "Carl Stefan", not just "Carl").
 - Uploader name and caption shown in sushi bar centre only — not in full-screen view
 
 ## Design intent
-Warm, bright, happy summer vibe. Generous whitespace. Friendly typography. UI frames photos without competing with them. Hero image of Carl Stefan & Trude to be added to front page (placeholder during development).
+Warm, bright, happy summer vibe. Generous whitespace. Friendly typography. UI frames photos without competing with them. Hero image (Carl Stefan & Trude kissing, dramatic warm light flare between them) to be placed at `frontend/public/hero.jpg` — use as full-width background on front page top section, cropped to a reasonable height but with both faces fully visible.
 
 ## Full requirements
 @docs/requirements.md
 
-## Local network access (important for development)
-- The app runs in Docker Desktop on a Windows PC and must be reachable from other devices on the local network (phones, tablets) for testing
-- Nginx and Docker Compose port bindings must use `0.0.0.0` — not `127.0.0.1`
-- All frontend API calls must use relative URLs (`/api/...`) routed through Nginx — never hardcoded `localhost` or ports
-- Use `AUTH_MODE=local` for all local and LAN testing — Google OAuth requires HTTPS + a registered domain and will not work over a LAN IP
-- The host machine's LAN IP (found via `ipconfig`) is how other devices reach the app, e.g. `http://192.168.1.x`
-- For internet access: router port forwarding to the host machine; for Google OAuth testing: use ngrok for a temporary public HTTPS tunnel
+## Environments
+
+Two environments are maintained in parallel using Docker Compose override files.
+
+### Local (dev / pre-prod)
+- Runs on Windows PC via Docker Desktop
+- URL (LAN): `http://10.0.0.12:8081`
+- URL (internet via port forwarding): `http://88.88.91.176:8081`
+- `AUTH_MODE=local` — username/password, seed script runs on startup
+- HTTP only — no TLS
+- Port mapping: `0.0.0.0:8081:80` in docker-compose.local.yml
+- All API calls use relative URLs (`/api/...`) via Nginx — never hardcoded ports
+- Start: `docker compose -f docker-compose.yml -f docker-compose.local.yml --env-file .env.local up -d`
+
+### Production (VPS — one.com)
+- URL: `https://cs.grotter.net`
+- IPv4: `85.190.99.39`
+- IPv6: `2001:880:0:21::1d8`
+- SSH: `administrator@85.190.99.39` (key: `~/.ssh/id_ed25519`)
+- `AUTH_MODE=google` — Google OAuth 2.0
+- HTTPS via Nginx + Certbot (Let's Encrypt); ports 80 and 443 must be open
+- Certificate domain: `cs.grotter.net`; HTTP-01 challenge requires port 80 to remain accessible
+- Google OAuth redirect URI: `https://cs.grotter.net/auth/google/callback`
+- Git remote: `https://github.com/carlstefan/bday-app`
+- Deploy: `ssh administrator@85.190.99.39 "cd /app && git pull && docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build"`
+
+### Environment files
+- `.env.local` — local secrets (gitignored)
+- `.env.prod` — production secrets (gitignored, stored separately from repo)
+- `.env.example` — committed template with all required variable names and descriptions
 
 ## Current status
-Planning phase — no code written yet. Start by proposing a phased development plan and scaffolding the project structure.
+Feature-complete for v1. All functional and technical requirements are implemented and running locally. Remaining before production launch: Google OAuth credentials (TR-S04), domain DNS cutover, Let's Encrypt certificate provisioning, and production VPS deployment (Phase 10 runbook in `docs/deployment-runbook.md`).

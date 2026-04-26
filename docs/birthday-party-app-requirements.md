@@ -2,7 +2,7 @@
 
 **Project:** Carl Stefan & Trude's 50th Birthday Party Photo Submission App  
 **Status:** Draft  
-**Last updated:** 2026-04-16 (v3)  
+**Last updated:** 2026-04-19 (v4)  
 
 ---
 
@@ -119,7 +119,7 @@ Acceptance criteria:
 > As a logged-in guest, I want to edit the caption on photos I have uploaded, so that I can correct mistakes or add context after the fact.
 
 Acceptance criteria:
-- An edit icon is visible on each photo in the gallery that belongs to the logged-in user
+- Caption editing is accessed via the action menu on own photos (see FR-G10)
 - The user can update the caption (max 200 characters) and save it
 - The updated caption is reflected in the gallery immediately
 - Users can only edit captions on their own photos — not on photos uploaded by others or anonymously
@@ -201,14 +201,42 @@ Acceptance criteria:
 **FR-G08 — Flag a photo for deletion**  
 *Priority: Should*
 
-> As a logged-in guest, I want to flag a photo for deletion, so that I can request removal of a photo I find inappropriate or that I don't want to appear in the gallery.
+> As a logged-in guest, I want to flag a photo for deletion, so that I can request removal of a photo I uploaded or report one I find inappropriate.
 
 Acceptance criteria:
-- Any logged-in user can flag any photo for deletion (not limited to their own uploads)
-- Flagging immediately hides the photo from all non-admin users
-- The flagged photo remains visible to admins in a dedicated moderation view, marked as pending deletion
-- The user who flagged the photo receives a confirmation that it has been hidden pending admin review
+- For **own photos**: flagging is accessed via the action menu (FR-G10); the photo is **immediately hidden** from all non-admin users and marked as flagged pending admin review
+- For **other guests' photos**: a separate, lighter-weight report icon is visible on each photo; flagging marks the photo as pending admin review but **does not hide it** — it remains visible in the gallery until an admin acts on it
+- In both cases the flagged photo appears in the admin moderation view (FR-A02)
+- The user who flagged receives a confirmation appropriate to the action taken (e.g. "Your photo has been hidden pending review" for own photos; "This photo has been reported and will be reviewed by an admin" for others' photos)
 - A photo can only be flagged once — if already flagged, the option is not shown
+
+---
+
+**FR-G09 — Filter gallery to show only own photos**  
+*Priority: Should*
+
+> As a logged-in guest, I want to filter the gallery to show only the photos I have uploaded, so that I can quickly find and manage my own contributions.
+
+Acceptance criteria:
+- A toggle or filter control is available in all gallery views (portrait phone, sushi bar, grid)
+- When the filter is active, only photos associated with the logged-in user's account are shown
+- The filter state is indicated clearly (e.g. highlighted button or label)
+- The filter persists across view changes (sushi bar ↔ grid) within the same session but resets on sign-out
+- If the user has no uploaded photos, a friendly empty state message is shown
+
+---
+
+**FR-G10 — Action menu on own photos**  
+*Priority: Should*
+
+> As a logged-in guest viewing one of my own photos, I want a quick-access action menu, so that I can edit the caption or flag it for deletion without hunting for separate controls.
+
+Acceptance criteria:
+- An action menu icon (e.g. a three-dot or ellipsis button) is visible on the centre image in the sushi bar and on the single-photo view in portrait mode, but only for photos belonging to the logged-in user
+- Opening the menu presents exactly two options: **Update caption** and **Flag for deletion**
+- Selecting **Update caption** opens an inline or modal edit field pre-filled with the existing caption (see FR-G03)
+- Selecting **Flag for deletion** initiates the flagging flow (see FR-G08)
+- The action menu is not shown on other users' photos or on anonymously uploaded photos
 
 ---
 
@@ -229,18 +257,19 @@ Acceptance criteria:
 
 ---
 
-**FR-A02 — Moderate deletion requests**  
+**FR-A02 — Moderate flagged photos**  
 *Priority: Should*
 
-> As an admin, I want to review photos that have been flagged for deletion, so that I can decide whether to permanently delete them or restore them to the gallery.
+> As an admin, I want to review photos that have been flagged, so that I can decide what to do with each one.
 
 Acceptance criteria:
-- A dedicated admin view lists all photos currently flagged for deletion, with the uploader name, caption, flag timestamp, and the name of the user who flagged it
+- A dedicated admin view lists all photos currently flagged, showing: thumbnail, uploader name, caption, whether the photo is currently hidden, flag timestamp, and the display name of the user who flagged it
 - For each flagged photo, the admin can choose one of three actions:
-  - **Accept deletion** — permanently deletes the image file and database record
-  - **Deny deletion** — removes the flag and restores the photo to full visibility in the gallery
-  - **Leave hidden** — dismisses the deletion request but keeps the photo hidden from guests (equivalent to an admin hide)
+  - **Delete image** — permanently deletes the image file and database record; irreversible
+  - **Hide image** — hides the photo from the gallery (if not already hidden) and dismisses the flag; equivalent to an admin hide
+  - **Reject deletion** — removes the flag and restores the photo to its pre-flag visibility state (visible if it was not hidden before being flagged; remains hidden if it was already hidden by an admin)
 - Each action requires a single click and takes effect immediately
+- The moderation view distinguishes between own-photo flags (photo already hidden) and other-user flags (photo still visible) so the admin has the right context at a glance
 
 ---
 
@@ -253,6 +282,34 @@ Acceptance criteria:
 - Admin can trigger a download of all photos (including hidden ones, excluding permanently deleted ones) as a single `.zip` file
 - Filenames in the archive follow the pattern `YYYYMMDD_HHMMSS_[uploader_name].jpg`
 - Each image in the archive has the uploader name and caption embedded as IPTC metadata, so the information travels with the file independently of the database
+
+---
+
+**FR-A04 — Admin notification badge**  
+*Priority: Should*
+
+> As an admin, I want to see a notification indicator when there are pending actions requiring my attention, so that I don't have to check the admin panel manually.
+
+Acceptance criteria:
+- A notification badge is visible to admins at all times (e.g. on a persistent admin menu icon or header element)
+- The badge shows a count of items requiring attention: flagged photos awaiting moderation
+- The badge disappears when there are no pending items
+- Clicking the badge or notification takes the admin directly to the relevant moderation view
+- The count updates in near real-time without requiring a full page reload (e.g. polling every 30 seconds or on navigation)
+
+---
+
+**FR-A05 — Hidden images gallery**  
+*Priority: Should*
+
+> As an admin, I want to browse all hidden photos in a dedicated gallery view, so that I can review what is hidden and restore photos if needed.
+
+Acceptance criteria:
+- A shortcut in the admin panel opens a gallery view showing all currently hidden photos (admin-hidden and own-photo flags that were auto-hidden)
+- The view uses the same gallery UX as the main gallery (sushi bar / grid depending on screen size) but scoped to hidden photos only
+- Each photo in this view shows an **Unhide** button allowing the admin to restore it to the main gallery
+- Photos pending deletion moderation are also visible here if they are in a hidden state, with their pending status clearly indicated
+- This view is accessible only to admins and is not linked from the guest-facing UI
 
 ---
 
@@ -308,6 +365,7 @@ Technical requirements describe the implementation constraints and architecture 
 | TR-B06 | Before accepting any upload, the backend checks available disk space using a single `fs.statfs()` call; if disk usage exceeds 90% a warning is logged and surfaced to admins; if disk usage exceeds 95% the upload is rejected with a clear error message | Must |
 | TR-B07 | At upload time, the EXIF `DateTimeOriginal` field is read from the image and stored as `captured_at` in the database before any processing; if absent, `captured_at` is set to the upload timestamp | Must |
 | TR-B08 | The API is RESTful; all endpoints are documented with example request/response payloads | Should |
+| TR-B09 | All major actions are written to the `audit_log` table immediately on completion; the following event types and their metadata payloads are required: `login` → `{ username, success, auth_mode }`; `register` → `{ display_name, username }` (local mode only); `upload` → `{ photo_ids, count }`; `update_caption` → `{ photo_id, old_caption, new_caption }`; `flag_deletion` → `{ photo_id, is_own_photo, auto_hidden }`; `admin_moderate` → `{ photo_id, action: 'delete'\|'hide'\|'reject' }`; `admin_unhide` → `{ photo_id }`; `admin_download` → `{ photo_count }` | Must |
 
 ---
 
@@ -319,8 +377,9 @@ Technical requirements describe the implementation constraints and architecture 
 | TR-D02 | The database file is stored on a Docker volume so it persists across container restarts | Must |
 | TR-D03 | A `users` table stores: `id`, `google_id` (nullable, populated in Google auth mode only), `username` (nullable, populated in local auth mode only), `password_hash` (nullable, populated in local auth mode only), `display_name`, `email`, `is_admin`, `created_at` | Must |
 | TR-D04 | The `photos` table stores: `id`, `filename`, `original_name`, `uploader_name`, `caption`, `user_id` (nullable FK to `users`), `is_hidden`, `captured_at`, `created_at` | Must |
-| TR-D05 | A `deletion_requests` table stores: `id`, `photo_id` (FK to `photos`), `flagged_by_user_id` (FK to `users`), `flagged_at`, `status` (`pending` / `accepted` / `denied` / `left_hidden`), `resolved_by_user_id` (nullable FK to `users`), `resolved_at` (nullable) | Must |
+| TR-D05 | A `deletion_requests` table stores: `id`, `photo_id` (FK to `photos`), `flagged_by_user_id` (FK to `users`), `flagged_at`, `is_own_photo` (boolean — true if the flagger is the uploader), `status` (`pending` / `deleted` / `hidden` / `rejected`), `resolved_by_user_id` (nullable FK to `users`), `resolved_at` (nullable) | Must |
 | TR-D06 | A seed script runs automatically at application startup when `AUTH_MODE=local`; it checks whether the predefined test users exist and inserts them with bcrypt-hashed passwords if not; the script is idempotent and never executes in Google auth mode | Must |
+| TR-D07 | An `audit_log` table stores: `id`, `event_type` (enum — see TR-B09), `user_id` (nullable FK to `users`), `ip_address`, `metadata` (JSON — event-specific payload), `created_at` | Must |
 
 ---
 
@@ -333,7 +392,7 @@ Technical requirements describe the implementation constraints and architecture 
 | TR-S03 | Admin status is determined by matching the authenticated user's Google email against a list stored in an environment variable (`ADMIN_EMAILS=carl@example.com,trude@example.com`) | Must |
 | TR-S04 | Google OAuth credentials (Client ID and Client Secret) are stored as environment variables and never committed to the repository | Must |
 | TR-S05 | File type validation is performed server-side by inspecting file headers (magic bytes), not just the MIME type declared by the client; full image decode validation is implicit — thumbnail generation via `sharp` will throw an error if the file cannot be decoded as a valid image, and the upload is rejected at that point with no separate validation step required | Must |
-| TR-S06 | The upload endpoint applies rate limiting to prevent abuse (e.g. max 20 uploads per IP per hour) | Should |
+| TR-S06 | The upload endpoint applies rate limiting to prevent abuse: max 100 uploads per IP per hour; the login endpoint is also rate-limited (max 20 attempts per IP per hour) to slow down brute-force attempts | Should |
 | TR-S07 | Uploaded image files are stored with a UUID as the filename (not the original filename); the serving route requires an authenticated session before returning any image file | Must |
 | TR-S08 | The `helmet` middleware is applied to all API responses, setting security headers including `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options`, and `Strict-Transport-Security`; image files are served with the correct `Content-Type` header so the browser never reinterprets them as scripts | Must |
 | TR-S09 | Session cookies are configured with `HttpOnly`, `Secure`, and `SameSite=Strict` attributes; sessions expire after a reasonable inactivity period (e.g. 24 hours) | Must |
@@ -383,11 +442,19 @@ The app should feel warm, bright, and celebratory — a happy summer party, not 
 
 **Front page**
 
-A hero image of Carl Stefan and Trude will be provided at a later stage and incorporated into the front page. A placeholder should be used during development. The front page should immediately communicate the occasion — a shared 50th birthday celebration — and invite guests to upload or sign in.
+A hero image of Carl Stefan and Trude has been provided and should be used as a background on the upper section of the front page. The image is a portrait-orientation photo of the two of them sharing a kiss, with a dramatic warm light flare between them — it has a romantic, celebratory feel that fits the summer vibe perfectly.
+
+Placement and cropping guidelines:
+- Use as a full-width background image on the top section of the front page
+- Crop height as needed so the section is not overly tall, but both faces must remain fully visible and uncropped
+- A subtle dark or warm-tinted overlay may be used to ensure any text overlaid on the image remains readable
+- File: `frontend/public/hero.jpg` (or `frontend/src/assets/hero.jpg`) — to be placed in the project by Carl Stefan
+
+The front page should immediately communicate the occasion — a shared 50th birthday celebration — and invite guests to upload or sign in.
 
 **Open design decisions**
 
-Specific colour palette, font choices, and component styling are to be decided. These should be informed by the hero photo once available, so the UI and the image feel cohesive rather than mismatched.
+Specific colour palette, font choices, and component styling should be drawn from the warmth and tones of the hero photo to ensure a cohesive feel.
 
 ---
 
@@ -417,7 +484,7 @@ Track decisions that still need to be made here before development starts.
 | OQ-03 | Should anonymous uploads be allowed at all, or should uploading also require Google login? | Carl Stefan/Trude | Open |
 | OQ-04 | Which Google account email addresses should have admin access? | Carl Stefan/Trude | Open |
 | OQ-05 | Should the app be invite-only (e.g. a shared link with a token), or open to anyone who discovers the URL? | Carl Stefan/Trude | Open |
-| OQ-06 | Hero photo of Carl Stefan and Trude for the front page — to be provided when available; colour palette and typography to be chosen once the photo is in hand | Carl Stefan | Open |
+| OQ-06 | Hero photo provided — warm portrait of Carl Stefan & Trude kissing with a dramatic light flare; to be saved as `frontend/public/hero.jpg`; colour palette and typography to follow from the photo's warm tones | Carl Stefan | Resolved |
 | OQ-07 | Domain name for VPS deployment — Carl Stefan has a domain available; decision needed on when to point it at the VPS (recommended: point it early when the VPS is provisioned, even before the app is announced, so Let's Encrypt and Google OAuth can be tested properly) | Carl Stefan | Open |
 | OQ-08 | VPS provider and specification — which provider, how much RAM/CPU/disk? Minimum spec is 1 vCPU / 1 GB RAM / 100 GB disk but provider choice affects deployment details | Carl Stefan | Open |
 

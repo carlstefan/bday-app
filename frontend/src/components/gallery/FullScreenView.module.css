@@ -20,23 +20,22 @@
 .imageWrap {
   position: relative;
   z-index: 1;
-  max-width: 100vw;
-  max-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Explicit size so PhotoImage's fullWrapper can inherit width/height correctly.
+     Without this, the 100%/100% on the inner wrapper collapses to zero → black screen. */
+  width: 100vw;
+  height: 100vh;
   transition: none; /* no transition during active drag */
   transform-origin: center center;
   will-change: transform;
 }
 
 .image {
-  max-width:  100vw;
-  max-height: 100vh;
-  width:      auto;
-  height:     auto;
-  object-fit: contain;
-  display:    block;
+  /* Applied to either <img> (thumbnail mode) or <div> (full mode).
+     In full mode the inner imgs fill the imageWrap via object-fit: contain. */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;   /* only takes effect when applied to <img> */
+  display: block;
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;

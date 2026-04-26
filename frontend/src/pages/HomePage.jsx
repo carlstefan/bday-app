@@ -7,11 +7,14 @@ export default function HomePage() {
 
   return (
     <div className={styles.page}>
-      {/* Hero — placeholder until real photo is supplied */}
+      {/* Hero image */}
       <div className={styles.hero}>
-        <div className={styles.heroPlaceholder}>
-          <span>📷 Hero photo of Carl Stefan &amp; Trude</span>
-        </div>
+        <img
+          src="/hero.jpg"
+          alt="Carl Stefan og Trude"
+          className={styles.heroImg}
+        />
+        <div className={styles.heroOverlay} />
       </div>
 
       <div className={styles.content}>
