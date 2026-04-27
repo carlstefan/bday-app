@@ -8,7 +8,11 @@ export default function LoginPage() {
   const { user, loading, refetch } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const next = searchParams.get('next') || '/gallery'
+  const rawNext = searchParams.get('next') || ''
+  // H1: Reject protocol-relative paths (//evil.com) that browsers resolve externally
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') && !rawNext.startsWith('/\\')
+    ? rawNext
+    : '/gallery'
 
   const [authMode, setAuthMode] = useState(null)
   const [username, setUsername] = useState('')
@@ -19,7 +23,7 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
-      navigate(next.startsWith('/') ? next : '/gallery', { replace: true })
+      navigate(next, { replace: true })
     }
   }, [user, loading])
 
@@ -35,7 +39,7 @@ export default function LoginPage() {
     try {
       await api.post('/api/auth/login', { json: { username, password } })
       await refetch()
-      navigate(next.startsWith('/') ? next : '/gallery', { replace: true })
+      navigate(next, { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Login failed. Please try again.')
     } finally {

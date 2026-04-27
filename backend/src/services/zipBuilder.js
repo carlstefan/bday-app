@@ -35,7 +35,7 @@ export async function buildZip(dest) {
     SELECT id, filename, original_name, uploader_name, caption, captured_at, created_at
     FROM photos
     WHERE id NOT IN (
-      SELECT photo_id FROM deletion_requests WHERE status = 'accepted'
+      SELECT photo_id FROM deletion_requests WHERE status = 'deleted'
     )
     ORDER BY COALESCE(captured_at, created_at) ASC
   `).all()

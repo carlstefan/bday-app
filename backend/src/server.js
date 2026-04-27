@@ -1,5 +1,12 @@
 import { initDatabase } from './db/index.js'
 
+// C2: Refuse to start without a strong SESSION_SECRET
+const secret = process.env.SESSION_SECRET
+if (!secret || secret.length < 32) {
+  console.error('FATAL: SESSION_SECRET must be set and at least 32 characters long.')
+  process.exit(1)
+}
+
 // Bootstrap database (schema + seed) before starting the server
 initDatabase()
 

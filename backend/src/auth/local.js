@@ -6,7 +6,9 @@ export function registerLocalStrategy(passport) {
   passport.use(
     new LocalStrategy(
       { usernameField: 'username', passwordField: 'password' },
-      (username, password, done) => {
+      // M2: Use async bcrypt.compare so the ~150-300ms hash check does not
+      // block the Node.js event loop for other concurrent requests.
+      async (username, password, done) => {
         try {
           const user = db
             .prepare('SELECT * FROM users WHERE username = ?')
@@ -16,7 +18,7 @@ export function registerLocalStrategy(passport) {
             return done(null, false, { message: 'Invalid username or password.' })
           }
 
-          const match = bcrypt.compareSync(password, user.password_hash)
+          const match = await bcrypt.compare(password, user.password_hash)
           if (!match) {
             return done(null, false, { message: 'Invalid username or password.' })
           }

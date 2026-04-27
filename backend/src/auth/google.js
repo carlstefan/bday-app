@@ -19,8 +19,11 @@ export function registerGoogleStrategy(passport) {
       (req, _accessToken, _refreshToken, profile, done) => {
         try {
           const googleId = profile.id
-          const email = profile.emails?.[0]?.value || null
-          const displayName = profile.displayName || email || 'Guest'
+          // M1: Only trust the email if Google has verified it — unverified
+          // addresses must never be used to grant admin privileges.
+          const emailObj = profile.emails?.[0]
+          const email = emailObj?.verified ? emailObj.value : null
+          const displayName = profile.displayName || emailObj?.value || 'Guest'
           const isAdmin = email && adminEmails.includes(email.toLowerCase()) ? 1 : 0
 
           // Find existing user
