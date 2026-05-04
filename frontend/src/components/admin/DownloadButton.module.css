@@ -1,8 +1,9 @@
 .wrap {
-  background: #fff;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-lt);
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 8px rgba(60, 30, 0, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,17 +19,18 @@
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 0.3rem;
+  color: var(--text);
 }
 
 .desc {
   font-size: 0.88rem;
-  color: #666;
+  color: var(--text-muted);
   margin: 0;
 }
 
 .btn {
-  background: #2c3e50;
-  color: #fff;
+  background: var(--text);
+  color: var(--bg-base);
   border: none;
   border-radius: 8px;
   padding: 0.75rem 1.5rem;

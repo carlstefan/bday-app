@@ -5,9 +5,10 @@
 }
 
 .card {
-  background: #fff;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-lt);
   border-radius: 10px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.09);
+  box-shadow: 0 1px 8px rgba(60, 30, 0, 0.07);
   overflow: hidden;
   display: flex;
   gap: 0;
@@ -43,19 +44,19 @@
 .uploader {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
 }
 
 .caption {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-muted);
   margin: 0;
   font-style: italic;
 }
 
 .flagger {
   font-size: 0.78rem;
-  color: #aaa;
+  color: var(--text-faint);
 }
 
 .actions {
@@ -80,34 +81,34 @@
 }
 
 .danger {
-  background: #fde8e8;
-  color: #c0392b;
+  background: var(--danger-lt);
+  color: var(--danger);
 }
 
 .danger:hover:not(:disabled) {
-  background: #f5c6c6;
+  background: var(--danger-bd);
 }
 
 .restore {
-  background: #e8f8e8;
-  color: #27ae60;
+  background: var(--success-lt);
+  color: var(--success);
 }
 
 .restore:hover:not(:disabled) {
-  background: #c8eec8;
+  background: #c8e8d8;
 }
 
 .neutral {
-  background: #f0f0f0;
-  color: #555;
+  background: var(--bg-alt);
+  color: var(--text-muted);
 }
 
 .neutral:hover:not(:disabled) {
-  background: #e0e0e0;
+  background: var(--bg-hover);
 }
 
 .empty {
-  color: #888;
+  color: var(--text-muted);
   font-style: italic;
   padding: 1rem 0;
 }
@@ -131,6 +132,6 @@
 }
 
 .badgeOwn    { background: #fff3cd; color: #856404; }
-.badgeOther  { background: #e2e3e5; color: #41464b; }
-.badgeHidden { background: #f8d7da; color: #842029; }
-.badgeVisible { background: #d1e7dd; color: #0a3622; }
+.badgeOther  { background: var(--bg-alt); color: var(--text-muted); }
+.badgeHidden { background: var(--danger-lt); color: var(--danger); }
+.badgeVisible { background: var(--success-lt); color: var(--success); }

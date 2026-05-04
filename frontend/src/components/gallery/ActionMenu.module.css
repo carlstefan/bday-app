@@ -5,26 +5,27 @@
 }
 
 .trigger {
-  background: rgba(0, 0, 0, 0.45);
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
   font-size: 1.1rem;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   line-height: 1;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   padding: 0;
   letter-spacing: 0;
 }
 
 .trigger:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .trigger:disabled {
@@ -38,14 +39,13 @@
   position: absolute;
   bottom: calc(100% + 6px);
   right: 0;
-  background: rgba(30, 30, 30, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 4px 0;
   min-width: 180px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(60, 30, 0, 0.14);
   z-index: 20;
-  backdrop-filter: blur(6px);
 }
 
 .item {
@@ -55,7 +55,7 @@
   width: 100%;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-md);
   font-size: 0.875rem;
   padding: 0.5rem 0.85rem;
   cursor: pointer;
@@ -65,7 +65,7 @@
 }
 
 .item:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover);
 }
 
 .item:disabled {
@@ -74,12 +74,12 @@
 }
 
 .itemDanger {
-  color: rgba(231, 76, 60, 0.85);
+  color: var(--danger);
 }
 
 .itemDanger:hover:not(:disabled) {
-  background: rgba(231, 76, 60, 0.12);
-  color: #e74c3c;
+  background: var(--danger-lt);
+  color: var(--danger);
 }
 
 .itemIcon {

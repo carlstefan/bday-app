@@ -1,144 +1,107 @@
-/* ── Single-photo portrait view ────────────────────────────────────────── */
+/* ── Single-photo portrait view (mobile) ───────────────────────────────── */
 
 .portrait {
   position: relative;
   width: 100vw;
   height: 100vh;
-  background: #0e0e0e;
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Top bar: grid icon · counter · action menu ──────────────────────── */
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  flex-shrink: 0;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-lt);
+  gap: 0.5rem;
+}
+
+.gridIcon {
+  background: none;
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.gridIcon:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.counter {
+  flex: 1;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+/* ── Photo area ─────────────────────────────────────────────────────────── */
+
+.photoArea {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   cursor: zoom-in;
   touch-action: pan-x pan-y;
-  user-select: none;
-  -webkit-user-select: none;
+  background: var(--bg-alt);
 }
 
 .photo {
-  max-width:  100%;
+  max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   display: block;
   pointer-events: none;
+  draggable: false;
 }
 
-.swipeHint {
-  position: absolute;
-  bottom: 2.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(255,255,255,0.25);
-  font-size: 1.2rem;
-  animation: bounce 2s ease-in-out infinite;
-  pointer-events: none;
-}
+/* ── Caption panel ──────────────────────────────────────────────────────── */
 
-@keyframes bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50%       { transform: translateX(-50%) translateY(5px); }
-}
-
-.counter {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  color: rgba(255,255,255,0.45);
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  pointer-events: none;
-}
-
-/* ── Action controls (ActionMenu / ReportButton) ─────────────────────────── */
-
-.actionsWrap {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 5;
-}
-
-/* ── Mini-grid view ─────────────────────────────────────────────────────── */
-
-.gridContainer {
-  width: 100vw;
-  height: 100vh;
-  background: #0e0e0e;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.gridHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
+.captionPanel {
   flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(253, 236, 216, 0.92);
+  border-top: 1px solid var(--border-lt);
+  backdrop-filter: blur(4px);
 }
 
-.closeGrid {
-  background: rgba(255,255,255,0.1);
-  border: none;
-  color: #fff;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.closeGrid:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-.gridTitle {
-  color: rgba(255,255,255,0.5);
-  font-size: 0.82rem;
-  letter-spacing: 0.04em;
-}
-
-.grid {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 3px;
-  padding: 3px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.gridThumb {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  cursor: pointer;
-  background: #222;
-}
-
-.gridThumbActive {
-  outline: 3px solid #e8832a;
-  outline-offset: -3px;
-}
-
-.gridImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.uploaderName {
   display: block;
-  transition: opacity 0.15s;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-md);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.15rem;
 }
 
-.gridThumb:hover .gridImg {
-  opacity: 0.85;
-}
-
-.activeMarker {
-  position: absolute;
-  inset: 0;
-  background: rgba(232, 131, 42, 0.15);
-  pointer-events: none;
+.caption {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }

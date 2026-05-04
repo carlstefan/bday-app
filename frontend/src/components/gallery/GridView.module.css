@@ -1,13 +1,20 @@
+/* ── Responsive photo grid ──────────────────────────────────────────────── */
+
 .grid {
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
-  background: #0e0e0e;
+  background: var(--bg-alt);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 3px;
   padding: 3px;
   align-content: start;
-  overflow-y: auto;
+}
+
+@media (min-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 }
 
 @media (min-width: 640px) {
@@ -22,16 +29,23 @@
   }
 }
 
+/* ── Thumbnail cell ─────────────────────────────────────────────────────── */
+
 .thumb {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  background: #1a1a1a;
+  background: var(--color-peach);
   cursor: pointer;
 }
 
+.thumb:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 .thumb:hover .img {
-  opacity: 0.82;
+  opacity: 0.88;
   transform: scale(1.03);
 }
 
@@ -43,13 +57,59 @@
   transition: opacity 0.2s, transform 0.2s;
 }
 
-.active .img {
-  opacity: 0.75;
+/* ── Caption overlay ────────────────────────────────────────────────────── */
+
+.captionOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 0.6rem 0.45rem;
+  background: linear-gradient(transparent, rgba(42, 26, 14, 0.72));
+  pointer-events: none;
 }
 
-.activeRing {
+.uploaderName {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 245, 235, 0.95);
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caption {
+  display: block;
+  margin: 0;
+  font-size: 0.68rem;
+  color: rgba(255, 245, 235, 0.78);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Unhide button (hidden gallery mode) ────────────────────────────────── */
+
+.unhideBtn {
   position: absolute;
-  inset: 0;
-  border: 3px solid #e8832a;
-  pointer-events: none;
+  top: 0.4rem;
+  right: 0.4rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  line-height: 1.4;
+}
+
+.unhideBtn:hover {
+  opacity: 0.85;
 }

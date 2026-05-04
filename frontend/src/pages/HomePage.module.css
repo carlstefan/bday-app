@@ -2,14 +2,14 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #fffbf5;
+  background: var(--bg-base);
 }
 
 .hero {
   width: 100%;
   height: clamp(320px, 70vh, 680px);
   overflow: hidden;
-  background: #1a0a05;
+  background: var(--bg-dark);
   position: relative;
 }
 
@@ -29,7 +29,7 @@
     to bottom,
     transparent 55%,
     rgba(255, 251, 245, 0.6) 85%,
-    #fffbf5 100%
+    var(--bg-base) 100%
   );
   pointer-events: none;
 }
@@ -47,13 +47,13 @@
 .title {
   font-size: clamp(2rem, 6vw, 4rem);
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text);
   margin: 0;
 }
 
 .subtitle {
   font-size: clamp(1rem, 3vw, 1.3rem);
-  color: #555;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.6;
 }
@@ -83,23 +83,23 @@
 }
 
 .btnPrimary {
-  background: #e8832a;
+  background: var(--accent);
   color: #fff;
 }
 
 .btnSecondary {
-  background: #fff;
-  color: #e8832a;
-  border: 2px solid #e8832a;
+  background: var(--bg-surface);
+  color: var(--accent);
+  border: 2px solid var(--accent);
 }
 
 .welcome {
-  color: #777;
+  color: var(--text-muted);
   font-size: 0.95rem;
   margin-top: 0.5rem;
 }
 
 .welcome a {
-  color: #e8832a;
+  color: var(--accent);
   text-decoration: none;
 }

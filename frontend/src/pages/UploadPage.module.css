@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: #fffbf5;
+  background: var(--bg-base);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -19,11 +19,11 @@
   font-size: 2rem;
   font-weight: 700;
   margin: 0;
-  color: #1a1a1a;
+  color: var(--text);
 }
 
 .subtitle {
-  color: #666;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -34,25 +34,25 @@
 }
 
 .dropZone {
-  border: 2.5px dashed #ddd;
+  border: 2.5px dashed var(--border);
   border-radius: 10px;
   padding: 2.5rem 1.5rem;
   text-align: center;
   cursor: pointer;
-  background: #fff;
+  background: var(--bg-surface);
   transition: border-color 0.15s, background 0.15s;
   user-select: none;
 }
 
 .dropZone:hover,
 .dropZone:focus {
-  border-color: #e8832a;
+  border-color: var(--accent);
   outline: none;
 }
 
 .dragOver {
-  border-color: #e8832a;
-  background: #fff8f0;
+  border-color: var(--accent);
+  background: var(--accent-lt);
 }
 
 .dropZoneContent {
@@ -69,7 +69,7 @@
 
 .dropHint {
   font-size: 0.82rem;
-  color: #aaa;
+  color: var(--text-faint);
 }
 
 .hiddenInput {
@@ -89,8 +89,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #fff;
-  border: 1px solid #eee;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-lt);
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
   font-size: 0.88rem;
@@ -101,18 +101,18 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #333;
+  color: var(--text-md);
 }
 
 .fileSize {
-  color: #aaa;
+  color: var(--text-faint);
   white-space: nowrap;
 }
 
 .removeBtn {
   background: none;
   border: none;
-  color: #bbb;
+  color: var(--text-faint);
   cursor: pointer;
   font-size: 0.85rem;
   padding: 0 0.25rem;
@@ -120,7 +120,7 @@
 }
 
 .removeBtn:hover {
-  color: #c0392b;
+  color: var(--danger);
 }
 
 .label {
@@ -129,23 +129,25 @@
   gap: 0.35rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-md);
 }
 
 .input,
 .textarea {
   padding: 0.65rem 0.9rem;
-  border: 1.5px solid #ddd;
+  border: 1.5px solid var(--border);
   border-radius: 6px;
   font-size: 1rem;
   outline: none;
   font-family: inherit;
+  background: var(--bg-base);
+  color: var(--text);
   transition: border-color 0.15s;
 }
 
 .input:focus,
 .textarea:focus {
-  border-color: #e8832a;
+  border-color: var(--accent);
 }
 
 .textarea {
@@ -155,15 +157,15 @@
 
 .charCount {
   font-size: 0.78rem;
-  color: #bbb;
+  color: var(--text-faint);
   text-align: right;
   font-weight: 400;
 }
 
 .error {
-  background: #fff2f2;
-  color: #c0392b;
-  border: 1px solid #f5c6cb;
+  background: var(--danger-lt);
+  color: var(--danger);
+  border: 1px solid var(--danger-bd);
   border-radius: 6px;
   padding: 0.6rem 0.9rem;
   font-size: 0.9rem;
@@ -172,7 +174,7 @@
 
 .progressBar {
   height: 10px;
-  background: #eee;
+  background: var(--border);
   border-radius: 6px;
   overflow: hidden;
   position: relative;
@@ -180,7 +182,7 @@
 
 .progressFill {
   height: 100%;
-  background: #e8832a;
+  background: var(--accent);
   transition: width 0.2s ease;
   border-radius: 6px;
 }
@@ -190,11 +192,11 @@
   right: 0;
   top: -1.4rem;
   font-size: 0.78rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .submitBtn {
-  background: #e8832a;
+  background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -220,7 +222,7 @@
 }
 
 .backLink a {
-  color: #888;
+  color: var(--text-muted);
   text-decoration: none;
 }
 
@@ -260,27 +262,27 @@
 }
 
 .btnPrimary {
-  background: #e8832a;
+  background: var(--accent);
   color: #fff;
 }
 
 .btnSecondary {
-  background: #fff;
-  color: #e8832a;
-  border: 2px solid #e8832a;
+  background: var(--bg-surface);
+  color: var(--accent);
+  border: 2px solid var(--accent);
 }
 
 .nudge {
-  background: #fff8f0;
-  border: 1.5px solid #e8832a33;
+  background: var(--accent-lt);
+  border: 1.5px solid rgba(232, 131, 42, 0.2);
   border-radius: 8px;
   padding: 1rem 1.5rem;
   font-size: 0.95rem;
-  color: #555;
+  color: var(--text-muted);
 }
 
 .nudge a {
-  color: #e8832a;
+  color: var(--accent);
   text-decoration: none;
   font-weight: 600;
 }

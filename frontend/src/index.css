@@ -1,3 +1,48 @@
+/* ══════════════════════════════════════════════════════════════════════
+   THEME — Warm pastel palette
+   Soft peach · warm cream · dusty rose · sage accents
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Backgrounds ─────────────────────────────────────────────────── */
+  --bg-base:     #fffbf5;   /* warm cream — body, pages                */
+  --bg-surface:  #fff8f0;   /* slightly warmer white — cards, panels   */
+  --bg-alt:      #fdecd8;   /* warm peach — gallery grid, section fills*/
+  --bg-hover:    #f5ead8;   /* warm hover state on surfaces            */
+  --bg-dark:     #2a1a0e;   /* warm near-black — full-screen immersive */
+
+  /* ── Pastel accent tones ─────────────────────────────────────────── */
+  --color-peach:    #f5c5a3;
+  --color-rose:     #c97d7d;
+  --color-rose-lt:  #f5e0e0;
+  --color-sage:     #7a9e8a;
+  --color-sage-lt:  #e4f0e8;
+
+  /* ── Borders ─────────────────────────────────────────────────────── */
+  --border:     #e8d0ba;
+  --border-lt:  #f5e5d0;
+
+  /* ── Typography ──────────────────────────────────────────────────── */
+  --text:        #2a1f15;
+  --text-md:     #5c4030;
+  --text-muted:  #7a6655;
+  --text-faint:  #a89880;
+
+  /* ── Primary action ──────────────────────────────────────────────── */
+  --accent:      #e8832a;
+  --accent-lt:   #fff3e8;
+  --accent-dark: #cf7020;
+
+  /* ── Status ──────────────────────────────────────────────────────── */
+  --danger:      #c0392b;
+  --danger-lt:   #fde8e8;
+  --danger-bd:   #f5c6cb;
+  --success:     #5a8f6a;
+  --success-lt:  #e4f0e8;
+}
+
+/* ── Global reset & base styles ──────────────────────────────────────── */
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -11,8 +56,8 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #fffbf5;
-  color: #1a1a1a;
+  background: var(--bg-base);
+  color: var(--text);
 }
 
 a {
