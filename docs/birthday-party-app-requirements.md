@@ -2,7 +2,7 @@
 
 **Project:** Carl Stefan & Trude's 50th Birthday Party Photo Submission App  
 **Status:** Draft  
-**Last updated:** 2026-04-19 (v4)  
+**Last updated:** 2026-04-27 (v5)  
 
 ---
 
@@ -133,37 +133,22 @@ Gallery access is restricted to logged-in users. All gallery views display only 
 
 ---
 
-**FR-G04 — Gallery: portrait phone view**  
+**FR-G04 — Gallery: mobile single-photo view**  
 *Priority: Must*
 
-> As a guest on a phone held in portrait orientation, I want an immersive single-photo experience with easy access to a thumbnail overview, so that I can browse photos naturally on a small screen.
+> As a guest on a mobile phone, I want to see one photo at a time with easy navigation and a quick way to switch to the grid overview, so that I can browse photos naturally on a small screen.
 
 Acceptance criteria:
-- On screens narrower than 480px CSS width, or a phone in portrait orientation, the default gallery view shows one photo at a time filling the screen, rendered using the 1000px thumbnail
+- On screens narrower than 480px CSS width, the default gallery view shows one photo at a time filling the screen width, rendered using the 1000px thumbnail
 - Swiping left or right navigates to the previous or next photo
-- A subtle icon indicates that rotating the phone to landscape will give a richer view
-- Swiping down transitions to a thumbnail grid showing 6 photos at a time in a 2-column × 3-row layout; swiping up/down scrolls through additional photos
-- Tapping a thumbnail in the grid transitions to the single-photo view for that photo
-- Tapping the photo in single-photo view opens the full-screen view (FR-G06)
+- A grid icon in the upper-left corner switches to the grid view (FR-G07)
+- Tapping the photo opens the full-screen view (FR-G06)
+- The uploader name and caption are shown beneath the photo
 
 ---
 
-**FR-G05 — Gallery: sushi bar view**  
-*Priority: Must*
-
-> As a guest on a larger screen, I want to see a focused carousel centred on one photo with neighbouring photos visible, so that I have context and can navigate fluidly.
-
-Acceptance criteria:
-- The sushi bar is the default gallery view for screens 480px CSS width and above
-- The number of visible photos depends on viewport width: 3 images on landscape phones (480–767px), 5 images on tablets and small screens (768–1279px), 7 images on wide screens (1280px and above)
-- The centre image is displayed significantly larger than the flanking images
-- The centre image is rendered using the 1000px thumbnail on screens below 1024px; the full original image is used on screens 1024px and above
-- Flanking images are always rendered using the 1000px thumbnail
-- Navigation — touch: swipe left/right; keyboard: left/right arrow keys; mouse: click a flanking image or scroll wheel (scroll wheel advances through photos, there is no vertical page scroll in this view)
-- The view occupies the full viewport — no content exists above or below to scroll to
-- The uploader name and caption are displayed alongside the centre image (e.g. below or as a subtle overlay); flanking images show no text
-- Tapping or clicking the centre image opens the full-screen view (FR-G06)
-- On screens 1024px and above, a toggle button (grid icon) switches to the gallery grid view (FR-G07); the selected view is remembered for the session
+**FR-G05 — *(Superseded)***  
+*The sushi bar carousel view has been replaced by the grid-first approach (FR-G07). This requirement is no longer active.*
 
 ---
 
@@ -173,7 +158,8 @@ Acceptance criteria:
 > As a guest, I want to view a photo at full quality filling my entire screen, with the ability to zoom in and swipe through photos, so that I can appreciate the details.
 
 Acceptance criteria:
-- The full-screen view is always entered by tapping/clicking the centre image in the sushi bar or a photo in the portrait phone single-photo view
+- On mobile: entered by tapping a photo in the single-photo view (FR-G04)
+- On larger screens: entered by clicking any thumbnail in the grid (FR-G07)
 - The full original image is always loaded regardless of screen size
 - The image fills the entire screen with no UI chrome except a minimal close/back control — no uploader name or caption is shown, keeping the view clean for inspecting the image
 - Navigation — touch: swipe left/right to move to the previous/next photo; keyboard: left/right arrow keys; mouse: scroll wheel zooms (does not navigate)
@@ -183,18 +169,20 @@ Acceptance criteria:
 
 ---
 
-**FR-G07 — Gallery: large-screen grid view**  
-*Priority: Should*
+**FR-G07 — Gallery: grid view**  
+*Priority: Must*
 
-> As a guest on a large screen, I want to see as many photos as possible at once in a grid, so that I can get an overview of all the party photos and jump to one that catches my eye.
+> As a guest, I want to see photos in a responsive grid so I can get an overview of all submissions and jump to any photo.
 
 Acceptance criteria:
-- Available on screens 1024px and above as a toggle alternative to the sushi bar view
-- The grid fills the viewport with as many thumbnail columns and rows as fit naturally for the screen width; the number of columns is not fixed — it should feel balanced for the screen (e.g. approximately 4–6 columns on a 1024px screen, more on wider screens)
+- Default view on screens 480px CSS width and above
+- Available on all screen sizes — on mobile it is reached via the grid icon in FR-G04
+- The number of columns is responsive: approximately 2 columns on small/portrait screens, 3–4 on tablets, 4–6+ on wide/desktop screens; the exact count should feel visually balanced for the screen width
 - Thumbnails are rendered using the 1000px thumbnail
 - The scroll wheel scrolls the page normally up and down through the full photo collection
-- Tapping or clicking a thumbnail transitions to the sushi bar view (FR-G05) centred on the selected photo
-- The toggle button switches back to the sushi bar view; the selected view is remembered for the session
+- On mobile: tapping a thumbnail returns to the single-photo view (FR-G04) at that photo
+- On screens 480px and above: tapping a thumbnail opens the full-screen view (FR-G06) directly
+- The uploader name and caption are shown as a subtle overlay or below each thumbnail
 
 ---
 
@@ -232,7 +220,7 @@ Acceptance criteria:
 > As a logged-in guest viewing one of my own photos, I want a quick-access action menu, so that I can edit the caption or flag it for deletion without hunting for separate controls.
 
 Acceptance criteria:
-- An action menu icon (e.g. a three-dot or ellipsis button) is visible on the centre image in the sushi bar and on the single-photo view in portrait mode, but only for photos belonging to the logged-in user
+- An action menu icon (e.g. a three-dot or ellipsis button) is visible on own photos in the mobile single-photo view (FR-G04) and in the full-screen view (FR-G06), but only for photos belonging to the logged-in user
 - Opening the menu presents exactly two options: **Update caption** and **Flag for deletion**
 - Selecting **Update caption** opens an inline or modal edit field pre-filled with the existing caption (see FR-G03)
 - Selecting **Flag for deletion** initiates the flagging flow (see FR-G08)
@@ -365,6 +353,7 @@ Technical requirements describe the implementation constraints and architecture 
 | TR-B06 | Before accepting any upload, the backend checks available disk space using a single `fs.statfs()` call; if disk usage exceeds 90% a warning is logged and surfaced to admins; if disk usage exceeds 95% the upload is rejected with a clear error message | Must |
 | TR-B07 | At upload time, the EXIF `DateTimeOriginal` field is read from the image and stored as `captured_at` in the database before any processing; if absent, `captured_at` is set to the upload timestamp | Must |
 | TR-B08 | The API is RESTful; all endpoints are documented with example request/response payloads | Should |
+| TR-B10 | The zip archive builder must exclude photos where a `deletion_requests` row exists with `status = 'deleted'`; the filter must use the value `'deleted'` (not `'accepted'`) to match the status values defined in the data schema | Must |
 | TR-B09 | All major actions are written to the `audit_log` table immediately on completion; the following event types and their metadata payloads are required: `login` → `{ username, success, auth_mode }`; `register` → `{ display_name, username }` (local mode only); `upload` → `{ photo_ids, count }`; `update_caption` → `{ photo_id, old_caption, new_caption }`; `flag_deletion` → `{ photo_id, is_own_photo, auto_hidden }`; `admin_moderate` → `{ photo_id, action: 'delete'\|'hide'\|'reject' }`; `admin_unhide` → `{ photo_id }`; `admin_download` → `{ photo_count }` | Must |
 
 ---
@@ -391,21 +380,31 @@ Technical requirements describe the implementation constraints and architecture 
 | TR-S02 | User sessions are managed via HTTP-only, signed session cookies (e.g. `express-session` with a strong secret) | Must |
 | TR-S03 | Admin status is determined by matching the authenticated user's Google email against a list stored in an environment variable (`ADMIN_EMAILS=carl@example.com,trude@example.com`) | Must |
 | TR-S04 | Google OAuth credentials (Client ID and Client Secret) are stored as environment variables and never committed to the repository | Must |
-| TR-S05 | File type validation is performed server-side by inspecting file headers (magic bytes), not just the MIME type declared by the client; full image decode validation is implicit — thumbnail generation via `sharp` will throw an error if the file cannot be decoded as a valid image, and the upload is rejected at that point with no separate validation step required | Must |
+| TR-S05 | File type validation is performed server-side by inspecting file headers (magic bytes), not just the MIME type declared by the client; full image decode validation is implicit — thumbnail generation via `sharp` will throw an error if the file cannot be decoded as a valid image, and the upload is rejected at that point with no separate validation step required; for HEIC files, the ISO Base Media File Format brand field (bytes 8–11) must additionally be validated against known HEIC brands (`heic`, `heix`, `heim`, `heis`, `hevc`, `hevx`, `mif1`) to reject MP4, MOV, and other ISO-BMFF containers that share the same `ftyp` box header | Must |
 | TR-S06 | The upload endpoint applies rate limiting to prevent abuse: max 100 uploads per IP per hour; the login endpoint is also rate-limited (max 20 attempts per IP per hour) to slow down brute-force attempts | Should |
 | TR-S07 | Uploaded image files are stored with a UUID as the filename (not the original filename); the serving route requires an authenticated session before returning any image file | Must |
 | TR-S08 | The `helmet` middleware is applied to all API responses, setting security headers including `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options`, and `Strict-Transport-Security`; image files are served with the correct `Content-Type` header so the browser never reinterprets them as scripts | Must |
 | TR-S09 | Session cookies are configured with `HttpOnly`, `Secure`, and `SameSite=Strict` attributes; sessions expire after a reasonable inactivity period (e.g. 24 hours) | Must |
-| TR-S10 | All API request bodies are validated using `zod` schemas before any processing; name and caption fields are additionally stripped of HTML tags server-side before being stored; React's automatic output escaping ensures user-supplied text is never rendered as HTML in the browser | Must |
+| TR-S10 | All API request bodies are validated using `zod` schemas before any processing; name and caption fields must be sanitised server-side using a proven library (e.g. `sanitize-html`) or by rejecting `<` and `>` characters outright — a regex that strips `<tag>` patterns is insufficient as it can be bypassed by unclosed tags; React's automatic output escaping provides a second layer of defence at render time | Must |
 | TR-S11 | Docker containers run as a non-root user; the uploads and database volumes are mounted only in the backend container; only the Nginx reverse proxy container is reachable from the internet — the backend runs on an internal Docker network with no externally exposed port | Must |
 | TR-S12 | `npm audit` is run before deployment and after any dependency updates to check for known vulnerabilities | Should |
 | TR-S13 | An `AUTH_MODE` environment variable controls the active authentication strategy: `local` for development (username/password form), `google` for production (Google OAuth); the application defaults to `local` if the variable is not set | Must |
+| TR-S14 | The application must refuse to start if `SESSION_SECRET` is missing or shorter than 32 characters; a startup check must throw a clear error rather than silently falling back to a hardcoded default | Must |
+| TR-S15 | On successful login (both local and Google OAuth strategies), the session ID must be regenerated via `req.session.regenerate()` before the authenticated user is attached to the session, preventing session fixation attacks | Must |
+| TR-S16 | On logout, the session must be fully destroyed server-side via `req.session.destroy()` and the session cookie must be explicitly cleared via `res.clearCookie()` — calling `req.logout()` alone is insufficient as it leaves the session row intact and the cookie valid | Must |
+| TR-S17 | The `next` redirect parameter used to return users to their intended page after login must be validated to reject any value starting with `//` or `\\` or containing `:`, in addition to requiring a leading `/`; this validation must be applied consistently in both the backend route handler and all frontend redirect logic | Must |
+| TR-S18 | In Google OAuth mode, the authenticated user's email is only used — and admin status only granted — if `profile.emails[0].verified` is `true`; unverified email addresses must be treated as absent | Must |
+| TR-S19 | bcrypt password comparison must use the async `bcrypt.compare()` API rather than `bcrypt.compareSync()` to avoid blocking the Node.js event loop during login requests | Should |
+| TR-S20 | Deletion flag requests are rate-limited per authenticated user (max 5 flags per hour) in addition to the existing per-IP API rate limiter, to prevent a malicious user from flooding the admin moderation queue or immunising photos against legitimate reports | Should |
+| TR-S21 | Image serving routes (thumbnails and originals) must use `Cache-Control: private, no-cache, must-revalidate` rather than a long `max-age`, so that photos hidden or deleted by an admin are not continued to be served from the browser cache | Should |
 
 ---
 
 ### 4.7 Local Development Configuration
 
 When `AUTH_MODE=local`, the following test users are seeded into the database at startup. Passwords are stored as bcrypt hashes — plaintext passwords are defined only in the seed script, which is a development-only file and is never deployed to production.
+
+> ⚠️ **Operational security note:** The local environment must never be exposed to the public internet with `AUTH_MODE=local` active. Router port-forwarding to port 8081 should only be used for short-lived testing sessions and disabled at all other times. The seeded test passwords are intentionally weak and are not safe for any internet-facing deployment. Production always uses `AUTH_MODE=google`.
 
 | Full name | Display name | Username | Role |
 |-----------|--------------|----------|------|
@@ -452,9 +451,9 @@ Placement and cropping guidelines:
 
 The front page should immediately communicate the occasion — a shared 50th birthday celebration — and invite guests to upload or sign in.
 
-**Open design decisions**
+**Colour palette**
 
-Specific colour palette, font choices, and component styling should be drawn from the warmth and tones of the hero photo to ensure a cohesive feel.
+A warm pastel palette has been chosen to match the party's theme and complement the tones in the hero photo. The palette should draw from soft peach, warm cream, and dusty rose as primary tones, with sage or warm grey as neutral accents. Typography and UI elements should feel light and airy against this backdrop — nothing heavy or saturated. Exact colour values are left to the implementation, but should be derived from the warmth of the hero image rather than chosen independently.
 
 ---
 
@@ -484,7 +483,7 @@ Track decisions that still need to be made here before development starts.
 | OQ-03 | Should anonymous uploads be allowed at all, or should uploading also require Google login? | Carl Stefan/Trude | Open |
 | OQ-04 | Which Google account email addresses should have admin access? | Carl Stefan/Trude | Open |
 | OQ-05 | Should the app be invite-only (e.g. a shared link with a token), or open to anyone who discovers the URL? | Carl Stefan/Trude | Open |
-| OQ-06 | Hero photo provided — warm portrait of Carl Stefan & Trude kissing with a dramatic light flare; to be saved as `frontend/public/hero.jpg`; colour palette and typography to follow from the photo's warm tones | Carl Stefan | Resolved |
+| OQ-06 | Hero photo provided; warm pastel colour palette chosen to match party theme — soft peach, warm cream, dusty rose, sage accents | Carl Stefan | Resolved |
 | OQ-07 | Domain name for VPS deployment — Carl Stefan has a domain available; decision needed on when to point it at the VPS (recommended: point it early when the VPS is provisioned, even before the app is announced, so Let's Encrypt and Google OAuth can be tested properly) | Carl Stefan | Open |
 | OQ-08 | VPS provider and specification — which provider, how much RAM/CPU/disk? Minimum spec is 1 vCPU / 1 GB RAM / 100 GB disk but provider choice affects deployment details | Carl Stefan | Open |
 

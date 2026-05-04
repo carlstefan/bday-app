@@ -5,16 +5,15 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { usePhotos } from '../hooks/usePhotos.js'
 import { useAdminBadge } from '../hooks/useAdminBadge.js'
 import { useViewport } from '../hooks/useViewport.js'
-import { SushiBar }       from '../components/gallery/SushiBar.jsx'
 import { PortraitView }   from '../components/gallery/PortraitView.jsx'
 import { FullScreenView } from '../components/gallery/FullScreenView.jsx'
 import { GridView }       from '../components/gallery/GridView.jsx'
 import styles from './GalleryPage.module.css'
 
 export default function GalleryPage() {
-  const { user }                        = useAuth()
-  const [searchParams]                  = useSearchParams()
-  const { width, isPortrait }           = useViewport()
+  const { user }           = useAuth()
+  const [searchParams]     = useSearchParams()
+  const { width }          = useViewport()
 
   // FR-A05: detect hidden gallery mode (admins only)
   const isHiddenMode = user?.is_admin && searchParams.get('mode') === 'hidden'
@@ -37,20 +36,46 @@ export default function GalleryPage() {
   // FR-A04: admin pending badge
   const { pendingCount } = useAdminBadge(Boolean(user?.is_admin))
 
-  const [currentIndex, setCurrentIndex] = useState(0)
+  // Navigation state
+  const [currentIndex, setCurrentIndex]   = useState(0)
   const [showFullScreen, setShowFullScreen] = useState(false)
-  const [showGrid, setShowGrid]         = useState(false)
 
-  // Reset index when filter changes or photo list changes
-  useEffect(() => {
-    setCurrentIndex(0)
-  }, [ownOnly])
+  // Mobile (<480px): toggle between 'single' photo view and grid
+  // Desktop (>=480px): always grid
+  const isMobile = width < 480
+  const [mobileView, setMobileView] = useState('single') // 'single' | 'grid'
 
+  // Reset index & mobile view when filter or photo list changes
+  useEffect(() => { setCurrentIndex(0) }, [ownOnly])
   useEffect(() => {
     if (displayPhotos.length > 0) {
       setCurrentIndex((i) => Math.min(i, displayPhotos.length - 1))
     }
   }, [displayPhotos.length])
+
+  // When resizing past the mobile breakpoint, full-screen still works fine;
+  // mobileView state is simply ignored on desktop.
+
+  const navigate = useCallback((idx) => {
+    setCurrentIndex(Math.max(0, Math.min(displayPhotos.length - 1, idx)))
+  }, [displayPhotos.length])
+
+  function openFullScreen(idx) {
+    navigate(idx)
+    setShowFullScreen(true)
+  }
+
+  // GridView thumbnail click:
+  // – mobile: navigate to that photo in single-photo view
+  // – desktop: open full-screen directly (FR-G07)
+  function handleGridPhotoClick(idx) {
+    navigate(idx)
+    if (isMobile) {
+      setMobileView('single')
+    } else {
+      setShowFullScreen(true)
+    }
+  }
 
   function handlePhotoUpdate(photoId, patch) {
     setPhotos((prev) => prev.map((p) => p.id === photoId ? { ...p, ...patch } : p))
@@ -59,7 +84,7 @@ export default function GalleryPage() {
   // Own-photo flag: remove from gallery (photo was auto-hidden)
   function handlePhotoFlagged(photoId) {
     setPhotos((prev) => prev.filter((p) => p.id !== photoId))
-    setCurrentIndex((i) => Math.max(0, Math.min(i, displayPhotos.length - 2)))
+    setCurrentIndex((i) => Math.max(0, i - 1))
   }
 
   // FR-A05: Unhide a photo from the hidden gallery
@@ -72,21 +97,19 @@ export default function GalleryPage() {
     }
   }
 
-  const navigate = useCallback((idx) => {
-    setCurrentIndex(Math.max(0, Math.min(displayPhotos.length - 1, idx)))
-  }, [displayPhotos.length])
-
-  // Global keyboard navigation
+  // Global keyboard navigation (portrait single-photo view)
   useEffect(() => {
     function onKey(e) {
       if (showFullScreen) return  // FullScreenView handles its own keys
-      if (e.key === 'ArrowLeft')  navigate(currentIndex - 1)
-      if (e.key === 'ArrowRight') navigate(currentIndex + 1)
-      if (e.key === 'Escape' && showGrid) setShowGrid(false)
+      if (isMobile && mobileView === 'single') {
+        if (e.key === 'ArrowLeft')  navigate(currentIndex - 1)
+        if (e.key === 'ArrowRight') navigate(currentIndex + 1)
+      }
+      if (e.key === 'Escape' && isMobile && mobileView === 'grid') setMobileView('single')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [currentIndex, showFullScreen, showGrid, navigate])
+  }, [currentIndex, showFullScreen, mobileView, isMobile, navigate])
 
   // ── Loading / error / empty ──────────────────────────────────────────────
   if (loading) {
@@ -110,7 +133,9 @@ export default function GalleryPage() {
   if (displayPhotos.length === 0) {
     return (
       <div className={styles.state}>
-        <p>{ownOnly ? 'Du har ingen bilder ennå.' : isHiddenMode ? 'Ingen skjulte bilder.' : 'Ingen bilder ennå.'}</p>
+        <p className={styles.emptyMsg}>
+          {ownOnly ? 'Du har ingen bilder ennå.' : isHiddenMode ? 'Ingen skjulte bilder.' : 'Ingen bilder ennå.'}
+        </p>
         {!isHiddenMode && !ownOnly && (
           <Link to="/upload" className={styles.uploadLink}>Last opp det første! →</Link>
         )}
@@ -127,10 +152,11 @@ export default function GalleryPage() {
     )
   }
 
-  // ── View selection ───────────────────────────────────────────────────────
-  const usePortrait = isPortrait && width < 480
-  const canGrid = width >= 1024 && !usePortrait
-  const currentPhoto = displayPhotos[currentIndex]
+  // ── Determine which view to render ───────────────────────────────────────
+  // Desktop (>=480px): always grid view; tap → full-screen
+  // Mobile (<480px): single-photo view by default; grid icon → grid view; tap → full-screen
+  const showPortrait = isMobile && mobileView === 'single'
+  const showGrid     = !isMobile || mobileView === 'grid'
 
   return (
     <div className={styles.gallery}>
@@ -139,15 +165,7 @@ export default function GalleryPage() {
       {isHiddenMode && (
         <div className={styles.hiddenBanner}>
           <Link to="/gallery" className={styles.hiddenBannerBack}>← Galleriet</Link>
-          <span className={styles.hiddenBannerLabel}>Skjulte bilder ({displayPhotos.length})</span>
-          {currentPhoto && (
-            <button
-              className={styles.unhideBtn}
-              onClick={() => handleUnhide(currentPhoto.id)}
-            >
-              Vis frem igjen
-            </button>
-          )}
+          <span className={styles.hiddenBannerLabel}>🙈 Skjulte bilder ({displayPhotos.length})</span>
         </div>
       )}
 
@@ -158,19 +176,7 @@ export default function GalleryPage() {
         </Link>
       )}
 
-      {/* Grid toggle button (1024px+ only, not in hidden mode) */}
-      {canGrid && !isHiddenMode && (
-        <button
-          className={styles.gridToggle}
-          onClick={() => setShowGrid((g) => !g)}
-          aria-label={showGrid ? 'Switch to sushi bar view' : 'Switch to grid view'}
-          title={showGrid ? 'Sushi-visning' : 'Rutenett'}
-        >
-          {showGrid ? '▤ Sushi' : '⊞ Grid'}
-        </button>
-      )}
-
-      {/* FR-G09: Own-photos filter toggle (only when logged in, not in hidden mode) */}
+      {/* FR-G09: Own-photos filter (logged-in users, not in hidden mode) */}
       {user && !isHiddenMode && (
         <button
           className={`${styles.ownOnlyBtn} ${ownOnly ? styles.ownOnlyActive : ''}`}
@@ -181,43 +187,32 @@ export default function GalleryPage() {
         </button>
       )}
 
-      {/* ── Portrait phone view ─── */}
-      {usePortrait && !showFullScreen && (
+      {/* ── Portrait phone: single-photo view (FR-G04) ─── */}
+      {showPortrait && !showFullScreen && (
         <PortraitView
           photos={displayPhotos}
           currentIndex={currentIndex}
           onNavigate={navigate}
-          onOpenFullScreen={() => setShowFullScreen(true)}
+          onOpenFullScreen={() => openFullScreen(currentIndex)}
+          onShowGrid={() => setMobileView('grid')}
           onPhotoUpdate={handlePhotoUpdate}
           onPhotoFlagged={handlePhotoFlagged}
         />
       )}
 
-      {/* ── Sushi bar (default for 480px+) ─── */}
-      {!usePortrait && !showGrid && !showFullScreen && (
-        <SushiBar
-          photos={displayPhotos}
-          currentIndex={currentIndex}
-          onNavigate={navigate}
-          onOpenFullScreen={() => setShowFullScreen(true)}
-          onPhotoUpdate={handlePhotoUpdate}
-          onPhotoFlagged={handlePhotoFlagged}
-        />
-      )}
-
-      {/* ── Grid view (1024px+ toggle) ─── */}
-      {canGrid && showGrid && !showFullScreen && (
+      {/* ── Grid view (default on desktop, toggle on mobile) (FR-G07) ─── */}
+      {showGrid && !showFullScreen && (
         <GridView
           photos={displayPhotos}
           currentIndex={currentIndex}
-          onSelect={(idx) => {
-            navigate(idx)
-            setShowGrid(false)   // click → land in sushi bar at that photo
-          }}
+          onPhotoClick={handleGridPhotoClick}
+          isMobile={isMobile}
+          isHiddenMode={isHiddenMode}
+          onUnhide={handleUnhide}
         />
       )}
 
-      {/* ── Full-screen overlay (any view) ─── */}
+      {/* ── Full-screen overlay (FR-G06) ─── */}
       {showFullScreen && (
         <FullScreenView
           photos={displayPhotos}
@@ -227,9 +222,9 @@ export default function GalleryPage() {
         />
       )}
 
-      {/* Upload shortcut — not shown in hidden gallery mode */}
+      {/* Upload shortcut FAB — not shown in hidden gallery mode */}
       {!isHiddenMode && (
-        <Link to="/upload" className={styles.uploadBtn} aria-label="Upload photos">
+        <Link to="/upload" className={styles.uploadBtn} aria-label="Last opp bilder">
           +
         </Link>
       )}

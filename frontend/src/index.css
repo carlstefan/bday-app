@@ -1,3 +1,48 @@
+/* ══════════════════════════════════════════════════════════════════════
+   THEME — Warm pastel palette
+   Soft peach · warm cream · dusty rose · sage accents
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Backgrounds ─────────────────────────────────────────────────── */
+  --bg-base:     #fffbf5;   /* warm cream — body, pages                */
+  --bg-surface:  #fff8f0;   /* slightly warmer white — cards, panels   */
+  --bg-alt:      #fdecd8;   /* warm peach — gallery grid, section fills*/
+  --bg-hover:    #f5ead8;   /* warm hover state on surfaces            */
+  --bg-dark:     #2a1a0e;   /* warm near-black — full-screen immersive */
+
+  /* ── Pastel accent tones ─────────────────────────────────────────── */
+  --color-peach:    #f5c5a3;
+  --color-rose:     #c97d7d;   /* dusty rose   */
+  --color-rose-lt:  #f5e0e0;   /* light rose   */
+  --color-sage:     #7a9e8a;   /* sage green   */
+  --color-sage-lt:  #e4f0e8;   /* light sage   */
+
+  /* ── Borders ─────────────────────────────────────────────────────── */
+  --border:     #e8d0ba;   /* warm peach border (main)   */
+  --border-lt:  #f5e5d0;   /* lighter border             */
+
+  /* ── Typography ──────────────────────────────────────────────────── */
+  --text:        #2a1f15;   /* warm near-black — headings, body    */
+  --text-md:     #5c4030;   /* warm medium brown                   */
+  --text-muted:  #7a6655;   /* muted warm grey-brown               */
+  --text-faint:  #a89880;   /* very muted — hints, placeholders    */
+
+  /* ── Primary action ──────────────────────────────────────────────── */
+  --accent:      #e8832a;
+  --accent-lt:   #fff3e8;
+  --accent-dark: #cf7020;
+
+  /* ── Status ──────────────────────────────────────────────────────── */
+  --danger:      #c0392b;
+  --danger-lt:   #fde8e8;
+  --danger-bd:   #f5c6cb;
+  --success:     #5a8f6a;   /* warm-tinted green */
+  --success-lt:  #e4f0e8;
+}
+
+/* ── Global reset & base styles ──────────────────────────────────────── */
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -11,8 +56,8 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #fffbf5;
-  color: #1a1a1a;
+  background: var(--bg-base);
+  color: var(--text);
 }
 
 a {

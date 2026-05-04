@@ -9,7 +9,7 @@
   width: 100%;
   height: clamp(320px, 70vh, 680px);
   overflow: hidden;
-  background: #1a0a05;
+  background: #1c1410;
   position: relative;
 }
 
@@ -45,17 +45,19 @@
 }
 
 .title {
-  font-size: clamp(2rem, 6vw, 4rem);
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: clamp(2.2rem, 7vw, 4.2rem);
+  font-weight: 800;
+  color: #2a1f15;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
-  font-size: clamp(1rem, 3vw, 1.3rem);
-  color: #555;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  color: #7a6655;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.65;
+  max-width: 480px;
 }
 
 .actions {
@@ -85,6 +87,7 @@
 .btnPrimary {
   background: #e8832a;
   color: #fff;
+  box-shadow: 0 3px 12px rgba(232, 131, 42, 0.28);
 }
 
 .btnSecondary {
@@ -94,12 +97,17 @@
 }
 
 .welcome {
-  color: #777;
-  font-size: 0.95rem;
-  margin-top: 0.5rem;
+  color: #7a6655;
+  font-size: 0.93rem;
+  margin-top: 0.25rem;
 }
 
 .welcome a {
   color: #e8832a;
   text-decoration: none;
+  font-weight: 600;
+}
+
+.welcome a:hover {
+  text-decoration: underline;
 }

@@ -1,8 +1,10 @@
+/* ── Full-screen photo viewer (FR-G06) ─────────────────────────────────── */
+
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: #000;
+  background: #fdf5eb;          /* warm cream — pastel everywhere */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,25 +22,23 @@
 .imageWrap {
   position: relative;
   z-index: 1;
-  /* Explicit size so PhotoImage's fullWrapper can inherit width/height correctly.
-     Without this, the 100%/100% on the inner wrapper collapses to zero → black screen. */
   width: 100vw;
   height: 100vh;
-  transition: none; /* no transition during active drag */
+  transition: none;
   transform-origin: center center;
   will-change: transform;
 }
 
 .image {
-  /* Applied to either <img> (thumbnail mode) or <div> (full mode).
-     In full mode the inner imgs fill the imageWrap via object-fit: contain. */
   width: 100%;
   height: 100%;
-  object-fit: contain;   /* only takes effect when applied to <img> */
+  object-fit: contain;
   display: block;
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
+  /* subtle shadow so photo pops off the cream background */
+  filter: drop-shadow(0 4px 24px rgba(60, 30, 0, 0.18));
 }
 
 /* ── Top bar ───────────────────────────────────────────────────────────── */
@@ -53,19 +53,22 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background: linear-gradient(rgba(0,0,0,0.6), transparent);
+  background: linear-gradient(
+    rgba(253, 245, 235, 0.92) 0%,
+    rgba(253, 245, 235, 0.0) 100%
+  );
 }
 
 .counter {
-  color: rgba(255,255,255,0.7);
+  color: #7a6655;
   font-size: 0.82rem;
   letter-spacing: 0.04em;
 }
 
 .closeBtn {
-  background: rgba(0,0,0,0.5);
-  border: none;
-  color: #fff;
+  background: rgba(42, 31, 21, 0.1);
+  border: 1px solid rgba(42, 31, 21, 0.15);
+  color: #2a1f15;
   font-size: 1.1rem;
   width: 36px;
   height: 36px;
@@ -75,10 +78,11 @@
   justify-content: center;
   cursor: pointer;
   line-height: 1;
+  transition: background 0.15s;
 }
 
 .closeBtn:hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(42, 31, 21, 0.18);
 }
 
 /* ── Prev/Next arrows ──────────────────────────────────────────────────── */
@@ -88,9 +92,9 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  background: rgba(0,0,0,0.45);
-  border: none;
-  color: #fff;
+  background: rgba(253, 245, 235, 0.75);
+  border: 1px solid rgba(42, 31, 21, 0.12);
+  color: #2a1f15;
   font-size: 2.5rem;
   width: 52px;
   height: 80px;
@@ -98,10 +102,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
   line-height: 1;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, background 0.15s;
+  backdrop-filter: blur(4px);
 }
 
 .overlay:hover .navBtn {
@@ -109,7 +114,7 @@
 }
 
 .navBtn:hover {
-  background: rgba(0,0,0,0.65);
+  background: rgba(240, 220, 200, 0.9);
 }
 
 .prev { left:  0.5rem; }
@@ -123,15 +128,17 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  background: rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: rgba(255,255,255,0.8);
+  background: rgba(42, 31, 21, 0.12);
+  border: 1px solid rgba(42, 31, 21, 0.18);
+  color: #2a1f15;
   font-size: 0.78rem;
   padding: 0.35rem 0.85rem;
   border-radius: 20px;
   cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s;
 }
 
 .resetZoom:hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(42, 31, 21, 0.2);
 }

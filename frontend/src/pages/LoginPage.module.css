@@ -8,13 +8,14 @@
 }
 
 .loading {
-  color: #888;
+  color: #7a6655;
 }
 
 .card {
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+  border-radius: 14px;
+  box-shadow: 0 2px 24px rgba(60, 30, 0, 0.1);
+  border: 1px solid #f0dcc8;
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 380px;
@@ -25,13 +26,14 @@
 
 .title {
   font-size: 1.8rem;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
   text-align: center;
+  color: #2a1f15;
 }
 
 .subtitle {
-  color: #666;
+  color: #7a6655;
   text-align: center;
   margin: 0;
   font-size: 0.95rem;
@@ -49,20 +51,22 @@
   gap: 0.35rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #333;
+  color: #2a1f15;
 }
 
 .input {
   padding: 0.65rem 0.9rem;
-  border: 1.5px solid #ddd;
-  border-radius: 6px;
+  border: 1.5px solid #e8d0ba;
+  border-radius: 7px;
   font-size: 1rem;
   outline: none;
+  background: #fffbf5;
   transition: border-color 0.15s;
 }
 
 .input:focus {
   border-color: #e8832a;
+  background: #fff;
 }
 
 .error {
@@ -120,11 +124,12 @@
 .uploadLink {
   text-align: center;
   font-size: 0.88rem;
-  color: #888;
+  color: #7a6655;
   margin: 0;
 }
 
 .uploadLink a {
   color: #e8832a;
   text-decoration: none;
+  font-weight: 600;
 }

@@ -1,17 +1,17 @@
+/* Gallery page wrapper — warm cream background for grid view */
 .gallery {
   position: relative;
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
-  background: #0e0e0e;
-  overflow: hidden;
+  background: #fdecd8;          /* warm peach — matches grid background */
 }
 
 /* ── Loading / error / empty states ───────────────────────────────────── */
 
 .state {
   min-height: 100vh;
-  background: #0e0e0e;
-  color: #eee;
+  background: #fdecd8;
+  color: #2a1f15;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -24,7 +24,7 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(255,255,255,0.15);
+  border: 3px solid #e8d0ba;
   border-top-color: #e8832a;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -35,18 +35,24 @@
 }
 
 .errorMsg {
-  color: #e74c3c;
+  color: #c0392b;
   margin: 0;
 }
 
+.emptyMsg {
+  color: #7a6655;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
 .homeLink {
-  color: rgba(255,255,255,0.45);
+  color: #7a6655;
   font-size: 0.88rem;
   text-decoration: none;
 }
 
 .homeLink:hover {
-  color: rgba(255,255,255,0.7);
+  color: #2a1f15;
 }
 
 .uploadLink {
@@ -56,29 +62,11 @@
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
+  transition: opacity 0.15s;
 }
 
-/* ── Grid toggle ───────────────────────────────────────────────────────── */
-
-.gridToggle {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 100;
-  background: rgba(0,0,0,0.55);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.8);
-  font-size: 0.8rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  cursor: pointer;
-  letter-spacing: 0.03em;
-  backdrop-filter: blur(4px);
-  transition: background 0.15s;
-}
-
-.gridToggle:hover {
-  background: rgba(255,255,255,0.12);
+.uploadLink:hover {
+  opacity: 0.88;
 }
 
 /* ── FR-G09: Own-only filter toggle ────────────────────────────────────── */
@@ -86,28 +74,31 @@
 .ownOnlyBtn {
   position: fixed;
   top: 1rem;
-  right: 4.5rem;   /* leave room for upload FAB area; shifts left if grid toggle visible */
+  right: 4.5rem;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 251, 245, 0.88);
+  border: 1.5px solid #e8d0ba;
+  color: #7a6655;
   font-size: 0.8rem;
   padding: 0.4rem 0.8rem;
-  border-radius: 6px;
+  border-radius: 20px;
   cursor: pointer;
-  letter-spacing: 0.03em;
-  backdrop-filter: blur(4px);
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(6px);
   transition: background 0.15s, border-color 0.15s, color 0.15s;
+  box-shadow: 0 1px 6px rgba(60, 30, 0, 0.08);
 }
 
 .ownOnlyBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: #fff3e8;
+  border-color: #e8832a;
+  color: #e8832a;
 }
 
 .ownOnlyActive {
   border-color: #e8832a;
   color: #e8832a;
-  background: rgba(232, 131, 42, 0.15);
+  background: #fff3e8;
 }
 
 /* ── FR-A04: Admin pending badge ────────────────────────────────────────── */
@@ -125,7 +116,7 @@
   padding: 0.35rem 0.85rem;
   border-radius: 20px;
   text-decoration: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.03em;
   transition: opacity 0.15s;
   white-space: nowrap;
@@ -138,71 +129,51 @@
 /* ── FR-A05: Hidden gallery banner ──────────────────────────────────────── */
 
 .hiddenBanner {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: rgba(20, 20, 20, 0.9);
+  z-index: 50;
+  background: rgba(255, 251, 245, 0.95);
   backdrop-filter: blur(6px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e8d0ba;
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 0.6rem 1rem;
-  color: rgba(255, 255, 255, 0.8);
   font-size: 0.85rem;
 }
 
 .hiddenBannerBack {
-  color: rgba(255, 255, 255, 0.55);
+  color: #7a6655;
   text-decoration: none;
   font-size: 0.82rem;
   flex-shrink: 0;
 }
 
-.hiddenBannerBack:hover {
-  color: #fff;
-}
+.hiddenBannerBack:hover { color: #2a1f15; }
 
 .hiddenBannerLabel {
   flex: 1;
   font-weight: 600;
+  color: #2a1f15;
   letter-spacing: 0.02em;
 }
 
-.unhideBtn {
-  background: #27ae60;
-  border: none;
-  color: #fff;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.3rem 0.75rem;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  flex-shrink: 0;
-}
-
-.unhideBtn:hover {
-  opacity: 0.85;
-}
-
-/* ── Own-only toggle button (standalone, for empty state) ───────────────── */
+/* ── Own-only toggle (standalone, empty-state) ───────────────────────────── */
 
 .ownOnlyToggle {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
+  background: #fff3e8;
+  border: 1.5px solid #e8832a;
+  color: #e8832a;
   padding: 0.5rem 1.2rem;
-  border-radius: 7px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 600;
   transition: background 0.15s;
 }
 
 .ownOnlyToggle:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: #ffe8cc;
 }
 
 /* ── Upload FAB ────────────────────────────────────────────────────────── */
@@ -223,7 +194,7 @@
   font-size: 1.8rem;
   line-height: 1;
   text-decoration: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 16px rgba(232, 131, 42, 0.35);
   transition: opacity 0.15s, transform 0.15s;
 }
 

@@ -17,13 +17,13 @@
 
 .title {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
-  color: #1a1a1a;
+  color: #2a1f15;
 }
 
 .subtitle {
-  color: #666;
+  color: #7a6655;
   margin: 0;
 }
 
@@ -34,8 +34,8 @@
 }
 
 .dropZone {
-  border: 2.5px dashed #ddd;
-  border-radius: 10px;
+  border: 2.5px dashed #e8d0ba;
+  border-radius: 12px;
   padding: 2.5rem 1.5rem;
   text-align: center;
   cursor: pointer;
@@ -47,12 +47,13 @@
 .dropZone:hover,
 .dropZone:focus {
   border-color: #e8832a;
+  background: #fff8f0;
   outline: none;
 }
 
 .dragOver {
   border-color: #e8832a;
-  background: #fff8f0;
+  background: #fff3e8;
 }
 
 .dropZoneContent {
@@ -90,8 +91,8 @@
   align-items: center;
   gap: 0.5rem;
   background: #fff;
-  border: 1px solid #eee;
-  border-radius: 6px;
+  border: 1px solid #f0dcc8;
+  border-radius: 7px;
   padding: 0.5rem 0.75rem;
   font-size: 0.88rem;
 }
@@ -129,23 +130,25 @@
   gap: 0.35rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #333;
+  color: #2a1f15;
 }
 
 .input,
 .textarea {
   padding: 0.65rem 0.9rem;
-  border: 1.5px solid #ddd;
-  border-radius: 6px;
+  border: 1.5px solid #e8d0ba;
+  border-radius: 7px;
   font-size: 1rem;
   outline: none;
   font-family: inherit;
+  background: #fffbf5;
   transition: border-color 0.15s;
 }
 
 .input:focus,
 .textarea:focus {
   border-color: #e8832a;
+  background: #fff;
 }
 
 .textarea {
@@ -271,12 +274,12 @@
 }
 
 .nudge {
-  background: #fff8f0;
-  border: 1.5px solid #e8832a33;
-  border-radius: 8px;
+  background: #fff3e8;
+  border: 1.5px solid #f0c090;
+  border-radius: 10px;
   padding: 1rem 1.5rem;
   font-size: 0.95rem;
-  color: #555;
+  color: #7a6655;
 }
 
 .nudge a {

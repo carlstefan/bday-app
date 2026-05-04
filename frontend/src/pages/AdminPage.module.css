@@ -1,13 +1,13 @@
 .page {
   min-height: 100vh;
-  background: #f4f6f9;
+  background: #fdf5ec;   /* warm cream tint */
 }
 
 /* ── Header ────────────────────────────────────────────────────────────── */
 
 .header {
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(60, 30, 0, 0.07);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -24,11 +24,12 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
+  color: #2a1f15;
 }
 
 .subtitle {
   font-size: 0.88rem;
-  color: #888;
+  color: #7a6655;
   margin: 0.15rem 0 0;
 }
 
@@ -42,22 +43,22 @@
 
 .galleryLink {
   font-size: 0.88rem;
-  color: #888;
+  color: #7a6655;
   text-decoration: none;
   margin-top: 0.25rem;
   white-space: nowrap;
 }
 
 .galleryLink:hover {
-  color: #333;
+  color: #2a1f15;
 }
 
 /* FR-A05: Hidden gallery shortcut */
 .hiddenGalleryLink {
   font-size: 0.82rem;
-  color: #888;
+  color: #7a6655;
   text-decoration: none;
-  background: #f0f0f0;
+  background: #f0dcc8;
   border-radius: 5px;
   padding: 0.25rem 0.65rem;
   transition: background 0.15s, color 0.15s;
@@ -65,15 +66,15 @@
 }
 
 .hiddenGalleryLink:hover {
-  background: #e0e0e0;
-  color: #333;
+  background: #e8d0ba;
+  color: #2a1f15;
 }
 
 /* ── Tabs ──────────────────────────────────────────────────────────────── */
 
 .tabs {
   display: flex;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #e8d0ba;
   overflow-x: auto;
 }
 
@@ -85,7 +86,7 @@
   padding: 0.7rem 1.25rem;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #666;
+  color: #7a6655;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -94,7 +95,7 @@
 }
 
 .tab:hover {
-  color: #333;
+  color: #2a1f15;
 }
 
 .tabActive {
@@ -104,7 +105,7 @@
 }
 
 .badge {
-  background: #e74c3c;
+  background: #c0392b;
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
@@ -124,11 +125,11 @@
 
 .sectionNote {
   font-size: 0.88rem;
-  color: #888;
+  color: #7a6655;
   margin: 0 0 1.25rem;
 }
 
 .loading {
-  color: #aaa;
+  color: #7a6655;
   font-style: italic;
 }

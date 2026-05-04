@@ -42,12 +42,11 @@ Owner: Carl Stefan Grøtter (use both names — "Carl Stefan", not just "Carl").
 - `deletion_requests`: id, photo_id (FK), flagged_by_user_id (FK), flagged_at, status, resolved_by_user_id (nullable), resolved_at (nullable)
 
 ## Gallery UX (summary)
-- **Portrait phone**: single photo view, swipe left/right; swipe down → 2×3 thumbnail grid
-- **Sushi bar** (480px+): 3/5/7 images depending on viewport; centre image large; scroll wheel navigates; no vertical scroll
-- **Full-screen**: tap centre image; full original always loaded; pinch/scroll to zoom; swipe navigates when at 1×
-- **Grid view** (1024px+ toggle): full viewport of thumbnails; normal scroll; click → sushi bar at that photo
-- Thumbnails used for all grid/flanking positions; full image for sushi bar centre on 1024px+ and full-screen view
-- Uploader name and caption shown in sushi bar centre only — not in full-screen view
+- **Mobile (<480px)**: single-photo view by default; swipe left/right to navigate; grid icon (upper left) → grid view; tap photo → full-screen
+- **Larger screens (480px+)**: grid view by default; responsive columns; tap thumbnail → full-screen directly
+- **Full-screen**: always loads full original; pinch/scroll to zoom; swipe navigates at 1×, pans when zoomed; no name/caption shown
+- Thumbnails used in all grid and single-photo views; full original only in full-screen
+- Uploader name and caption shown in single-photo view and as thumbnail overlay in grid — not in full-screen
 
 ## Design intent
 Warm, bright, happy summer vibe. Generous whitespace. Friendly typography. UI frames photos without competing with them. Hero image (Carl Stefan & Trude kissing, dramatic warm light flare between them) to be placed at `frontend/public/hero.jpg` — use as full-width background on front page top section, cropped to a reasonable height but with both faces fully visible.

@@ -1,93 +1,61 @@
-import { useState, useRef } from 'react'
-import { PhotoImage } from './PhotoImage.jsx'
+import { useRef } from 'react'
 import { ActionMenu }   from './ActionMenu.jsx'
 import { ReportButton } from './ReportButton.jsx'
 import { useSwipe } from '../../hooks/useSwipe.js'
 import { useAuth }  from '../../context/AuthContext.jsx'
 import styles from './PortraitView.module.css'
 
-const GRID_COLS = 2
-
-export function PortraitView({ photos, currentIndex, onNavigate, onOpenFullScreen, onPhotoUpdate, onPhotoFlagged }) {
+/**
+ * Mobile single-photo view (FR-G04).
+ *
+ * – Swipe left/right: navigate photos
+ * – Tap photo: open full-screen view (FR-G06)
+ * – Grid icon (top-left): switch to grid view (FR-G07)
+ * – Uploader name + caption shown below the photo
+ */
+export function PortraitView({
+  photos,
+  currentIndex,
+  onNavigate,
+  onOpenFullScreen,
+  onShowGrid,
+  onPhotoUpdate,
+  onPhotoFlagged,
+}) {
   const { user } = useAuth()
-  const [showGrid, setShowGrid] = useState(false)
-  const gridRef = useRef(null)
-
   const photo = photos[currentIndex]
-
-  // ── Swipe handlers for single-photo view ────────────────────────────────
-  const singleSwipe = useSwipe({
-    onSwipeLeft:  () => onNavigate(Math.min(photos.length - 1, currentIndex + 1)),
-    onSwipeRight: () => onNavigate(Math.max(0, currentIndex - 1)),
-    onSwipeDown:  () => setShowGrid(true),
-  })
-
-  // ── Mini-grid view ───────────────────────────────────────────────────────
-  if (showGrid) {
-    return (
-      <div className={styles.gridContainer}>
-        <div className={styles.gridHeader}>
-          <button className={styles.closeGrid} onClick={() => setShowGrid(false)} aria-label="Back to photo">
-            ✕
-          </button>
-          <span className={styles.gridTitle}>
-            {currentIndex + 1} / {photos.length}
-          </span>
-        </div>
-
-        <div ref={gridRef} className={styles.grid}>
-          {photos.map((p, idx) => (
-            <div
-              key={p.id}
-              className={`${styles.gridThumb} ${idx === currentIndex ? styles.gridThumbActive : ''}`}
-              onClick={() => {
-                onNavigate(idx)
-                setShowGrid(false)
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label={`Photo ${idx + 1}${p.uploader_name ? ' by ' + p.uploader_name : ''}`}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') { onNavigate(idx); setShowGrid(false) }
-              }}
-            >
-              <img
-                src={`/api/photos/${p.id}/thumbnail`}
-                alt={p.caption || p.original_name}
-                loading="lazy"
-                className={styles.gridImg}
-              />
-              {idx === currentIndex && <div className={styles.activeMarker} />}
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // ── Single-photo view ────────────────────────────────────────────────────
   const isOwnPhoto = user && photo.user_id === user.id
 
-  return (
-    <div
-      className={styles.portrait}
-      {...singleSwipe}
-      onClick={() => onOpenFullScreen()}
-    >
-      <img
-        src={`/api/photos/${photo.id}/thumbnail`}
-        alt={photo.caption || photo.original_name}
-        className={styles.photo}
-        draggable={false}
-      />
+  const swipe = useSwipe({
+    onSwipeLeft:  () => onNavigate(Math.min(photos.length - 1, currentIndex + 1)),
+    onSwipeRight: () => onNavigate(Math.max(0, currentIndex - 1)),
+  })
 
-      {/* Action controls — stop propagation so taps don't open full-screen */}
+  return (
+    <div className={styles.portrait}>
+
+      {/* Grid icon — top-left (FR-G04) */}
+      <button
+        className={styles.gridIcon}
+        onClick={onShowGrid}
+        aria-label="Åpne rutenettvisning"
+        title="Rutenett"
+      >
+        ⊞
+      </button>
+
+      {/* Counter — top-right */}
+      <div className={styles.counter} aria-label={`Bilde ${currentIndex + 1} av ${photos.length}`}>
+        {currentIndex + 1} / {photos.length}
+      </div>
+
+      {/* Action menu (own photos) or report button — stop propagation */}
       {user && (
         <div className={styles.actionsWrap} onClick={(e) => e.stopPropagation()}>
           {isOwnPhoto ? (
             <ActionMenu
               photo={photo}
-              onEditCaption={() => {/* caption editing not shown in portrait view */}}
+              onEditCaption={() => {/* caption editing not available in portrait view */}}
               onFlagged={(id) => onPhotoFlagged?.(id)}
             />
           ) : (
@@ -96,15 +64,31 @@ export function PortraitView({ photos, currentIndex, onNavigate, onOpenFullScree
         </div>
       )}
 
-      {/* Swipe-down hint */}
-      <div className={styles.swipeHint} aria-hidden>
-        <span>↓</span>
+      {/* Photo — swipeable, tappable for full-screen */}
+      <div
+        className={styles.photoArea}
+        {...swipe}
+        onClick={onOpenFullScreen}
+      >
+        <img
+          src={`/api/photos/${photo.id}/thumbnail`}
+          alt={photo.caption || photo.original_name || `Bilde ${currentIndex + 1}`}
+          className={styles.photo}
+          draggable={false}
+        />
       </div>
 
-      {/* Counter */}
-      <div className={styles.counter} aria-label={`Photo ${currentIndex + 1} of ${photos.length}`}>
-        {currentIndex + 1} / {photos.length}
-      </div>
+      {/* Caption panel — uploader name + caption (FR-G04) */}
+      {(photo.uploader_name || photo.caption) && (
+        <div className={styles.captionPanel} onClick={(e) => e.stopPropagation()}>
+          {photo.uploader_name && (
+            <span className={styles.uploaderName}>{photo.uploader_name}</span>
+          )}
+          {photo.caption && (
+            <p className={styles.caption}>{photo.caption}</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
