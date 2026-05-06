@@ -9,7 +9,7 @@ passport.serializeUser((user, done) => {
 // Deserialize: fetch full user from DB on each request
 passport.deserializeUser((id, done) => {
   try {
-    const user = db.prepare('SELECT id, display_name, email, is_admin FROM users WHERE id = ?').get(id)
+    const user = db.prepare('SELECT id, display_name, email, is_admin, is_super_admin FROM users WHERE id = ?').get(id)
     done(null, user || false)
   } catch (err) {
     done(err)
