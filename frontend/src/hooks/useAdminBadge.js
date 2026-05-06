@@ -4,36 +4,34 @@ import { api } from '../api/client.js'
 const POLL_INTERVAL_MS = 30_000
 
 /**
- * FR-A04: Polls /api/admin/pending-count every 30 s.
- * Returns { pendingCount } — always 0 when user is not admin.
+ * FR-A04: Polls a pending-count endpoint every 30 s.
  *
- * @param {boolean} isAdmin  Pass req.user.is_admin (or equivalent from AuthContext)
+ * @param {boolean} enabled    Only polls when true
+ * @param {string}  [url]      Defaults to /api/admin/pending-count (legacy)
  */
-export function useAdminBadge(isAdmin) {
+export function useAdminBadge(enabled, url = '/api/admin/pending-count') {
   const [pendingCount, setPendingCount] = useState(0)
   const intervalRef = useRef(null)
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (!enabled || !url) {
       setPendingCount(0)
       return
     }
 
     const fetchCount = async () => {
       try {
-        const data = await api.get('/api/admin/pending-count')
+        const data = await api.get(url)
         setPendingCount(data.count ?? 0)
       } catch {
-        // Silently ignore — badge will just show stale count
+        // Silently ignore
       }
     }
 
-    // Fetch immediately, then on interval
     fetchCount()
     intervalRef.current = setInterval(fetchCount, POLL_INTERVAL_MS)
-
     return () => clearInterval(intervalRef.current)
-  }, [isAdmin])
+  }, [enabled, url])
 
   return { pendingCount }
 }

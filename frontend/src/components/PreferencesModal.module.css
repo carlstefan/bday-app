@@ -1,0 +1,163 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(42, 31, 21, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: #fffbf5;
+  border-radius: 14px;
+  box-shadow: 0 12px 48px rgba(42, 31, 21, 0.22);
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid #f0dcc8;
+}
+
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #2a1f15;
+  margin: 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #aaa;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.closeBtn:hover { color: #2a1f15; }
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #f0dcc8;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.7rem;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: #7a6655;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+
+.tab:hover { background: #fff8f0; }
+
+.tabActive {
+  color: #e8832a;
+  font-weight: 600;
+  border-bottom: 2px solid #e8832a;
+}
+
+.body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.desc {
+  color: #7a6655;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.input {
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid #e8d0ba;
+  border-radius: 7px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus { border-color: #e8832a; }
+
+.error {
+  color: #c0392b;
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.success {
+  color: #27ae60;
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.btnPrimary {
+  background: #e8832a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+
+.btnPrimary:hover:not(:disabled) { opacity: 0.88; }
+.btnPrimary:disabled { opacity: 0.55; cursor: default; }
+
+.btnDanger {
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+
+.btnDanger:hover:not(:disabled) { opacity: 0.88; }
+.btnDanger:disabled { opacity: 0.55; cursor: default; }
+
+.btnSecondary {
+  background: #fff;
+  color: #7a6655;
+  border: 1.5px solid #e8d0ba;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+
+.btnSecondary:hover { background: #fff8f0; }
+
+.confirmRow {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}

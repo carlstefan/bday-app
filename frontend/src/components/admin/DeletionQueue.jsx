@@ -9,7 +9,7 @@ const ACTIONS = [
   { key: 'hide',   label: 'Behold skjult', className: 'neutral'  },
 ]
 
-export function DeletionQueue({ requests, onResolved }) {
+export function DeletionQueue({ requests, onResolved, partyKey }) {
   const [busy, setBusy] = useState({})
 
   async function resolve(requestId, action) {
@@ -17,7 +17,10 @@ export function DeletionQueue({ requests, onResolved }) {
     if (action === 'delete' && !confirm('Slett bildet permanent?')) return
     setBusy((b) => ({ ...b, [requestId]: true }))
     try {
-      await api.patch(`/api/admin/deletion-requests/${requestId}/${action}`)
+      const url = partyKey
+        ? `/api/p/${partyKey}/admin/deletion-requests/${requestId}/${action}`
+        : `/api/admin/deletion-requests/${requestId}/${action}`
+      await api.patch(url)
       onResolved(requestId, action)
     } catch (err) {
       alert(err.message)
@@ -35,7 +38,7 @@ export function DeletionQueue({ requests, onResolved }) {
         <div key={req.id} className={styles.card}>
           <div className={styles.imgCol}>
             <img
-              src={`/api/photos/${req.photo_id}/thumbnail`}
+              src={partyKey ? `/api/p/${partyKey}/photos/${req.photo_id}/thumbnail` : `/api/photos/${req.photo_id}/thumbnail`}
               alt={req.caption || req.original_name}
               className={styles.thumb}
             />

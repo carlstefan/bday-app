@@ -1,27 +1,30 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useParams } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useParty } from '../context/PartyContext.jsx'
 import { usePhotos } from '../hooks/usePhotos.js'
 import { useAdminBadge } from '../hooks/useAdminBadge.js'
-import { useViewport } from '../hooks/useViewport.js'
-import { PortraitView }   from '../components/gallery/PortraitView.jsx'
 import { FullScreenView } from '../components/gallery/FullScreenView.jsx'
 import { GridView }       from '../components/gallery/GridView.jsx'
+import ThreeDotMenu from '../components/ThreeDotMenu.jsx'
 import styles from './GalleryPage.module.css'
 
 export default function GalleryPage() {
   const { user }           = useAuth()
+  const { partyKey }       = useParams()
+  const { party }          = useParty() || {}
   const [searchParams]     = useSearchParams()
-  const { width }          = useViewport()
 
-  // FR-A05: detect hidden gallery mode (admins only)
-  const isHiddenMode = user?.is_admin && searchParams.get('mode') === 'hidden'
+  // FR-A05: detect hidden gallery mode (managers/admins only)
+  const canModerate = user?.is_super_admin || (user?.party_roles || []).some(
+    r => r.party_key === partyKey && ['manager', 'owner'].includes(r.role)
+  )
+  const isHiddenMode = canModerate && searchParams.get('mode') === 'hidden'
 
-  // Choose fetch URL based on mode
   const photosUrl = isHiddenMode
-    ? '/api/admin/hidden-photos'
-    : '/api/photos?limit=500'
+    ? `/api/p/${partyKey}/admin/hidden-photos`
+    : `/api/p/${partyKey}/photos?limit=500`
 
   const { photos, loading, error, setPhotos } = usePhotos(photosUrl)
 
@@ -33,28 +36,20 @@ export default function GalleryPage() {
     return photos.filter((p) => p.user_id === user.id)
   }, [photos, ownOnly, user])
 
-  // FR-A04: admin pending badge
-  const { pendingCount } = useAdminBadge(Boolean(user?.is_admin))
+  // FR-A04: pending badge (managers/owners/super admin)
+  const { pendingCount } = useAdminBadge(canModerate, partyKey ? `/api/p/${partyKey}/admin/pending-count` : null)
 
   // Navigation state
-  const [currentIndex, setCurrentIndex]   = useState(0)
+  const [currentIndex, setCurrentIndex]     = useState(0)
   const [showFullScreen, setShowFullScreen] = useState(false)
 
-  // Mobile (<480px): toggle between 'single' photo view and grid
-  // Desktop (>=480px): always grid
-  const isMobile = width < 480
-  const [mobileView, setMobileView] = useState('single') // 'single' | 'grid'
-
-  // Reset index & mobile view when filter or photo list changes
+  // Reset index when filter or photo list changes
   useEffect(() => { setCurrentIndex(0) }, [ownOnly])
   useEffect(() => {
     if (displayPhotos.length > 0) {
       setCurrentIndex((i) => Math.min(i, displayPhotos.length - 1))
     }
   }, [displayPhotos.length])
-
-  // When resizing past the mobile breakpoint, full-screen still works fine;
-  // mobileView state is simply ignored on desktop.
 
   const navigate = useCallback((idx) => {
     setCurrentIndex(Math.max(0, Math.min(displayPhotos.length - 1, idx)))
@@ -65,16 +60,9 @@ export default function GalleryPage() {
     setShowFullScreen(true)
   }
 
-  // GridView thumbnail click:
-  // – mobile: navigate to that photo in single-photo view
-  // – desktop: open full-screen directly (FR-G07)
+  // FR-G07: tapping any thumbnail opens full-screen on all screen sizes
   function handleGridPhotoClick(idx) {
-    navigate(idx)
-    if (isMobile) {
-      setMobileView('single')
-    } else {
-      setShowFullScreen(true)
-    }
+    openFullScreen(idx)
   }
 
   function handlePhotoUpdate(photoId, patch) {
@@ -90,26 +78,12 @@ export default function GalleryPage() {
   // FR-A05: Unhide a photo from the hidden gallery
   async function handleUnhide(photoId) {
     try {
-      await api.patch(`/api/admin/photos/${photoId}/unhide`)
+      await api.patch(`/api/p/${partyKey}/admin/photos/${photoId}/unhide`)
       setPhotos((prev) => prev.filter((p) => p.id !== photoId))
     } catch (err) {
       alert(err.message)
     }
   }
-
-  // Global keyboard navigation (portrait single-photo view)
-  useEffect(() => {
-    function onKey(e) {
-      if (showFullScreen) return  // FullScreenView handles its own keys
-      if (isMobile && mobileView === 'single') {
-        if (e.key === 'ArrowLeft')  navigate(currentIndex - 1)
-        if (e.key === 'ArrowRight') navigate(currentIndex + 1)
-      }
-      if (e.key === 'Escape' && isMobile && mobileView === 'grid') setMobileView('single')
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [currentIndex, showFullScreen, mobileView, isMobile, navigate])
 
   // ── Loading / error / empty ──────────────────────────────────────────────
   if (loading) {
@@ -137,7 +111,7 @@ export default function GalleryPage() {
           {ownOnly ? 'Du har ingen bilder ennå.' : isHiddenMode ? 'Ingen skjulte bilder.' : 'Ingen bilder ennå.'}
         </p>
         {!isHiddenMode && !ownOnly && (
-          <Link to="/upload" className={styles.uploadLink}>Last opp det første! →</Link>
+          <Link to={`/p/${partyKey}/upload`} className={styles.uploadLink}>Last opp det første! →</Link>
         )}
         {ownOnly && (
           <button className={styles.ownOnlyToggle} onClick={() => setOwnOnly(false)}>
@@ -145,18 +119,12 @@ export default function GalleryPage() {
           </button>
         )}
         {isHiddenMode && (
-          <Link to="/gallery" className={styles.homeLink}>← Tilbake til galleriet</Link>
+          <Link to={`/p/${partyKey}/gallery`} className={styles.homeLink}>← Tilbake til galleriet</Link>
         )}
-        {!isHiddenMode && <Link to="/" className={styles.homeLink}>← Forsiden</Link>}
+        {!isHiddenMode && <Link to={`/p/${partyKey}`} className={styles.homeLink}>← Forsiden</Link>}
       </div>
     )
   }
-
-  // ── Determine which view to render ───────────────────────────────────────
-  // Desktop (>=480px): always grid view; tap → full-screen
-  // Mobile (<480px): single-photo view by default; grid icon → grid view; tap → full-screen
-  const showPortrait = isMobile && mobileView === 'single'
-  const showGrid     = !isMobile || mobileView === 'grid'
 
   return (
     <div className={styles.gallery}>
@@ -164,14 +132,21 @@ export default function GalleryPage() {
       {/* FR-A05: Hidden gallery banner */}
       {isHiddenMode && (
         <div className={styles.hiddenBanner}>
-          <Link to="/gallery" className={styles.hiddenBannerBack}>← Galleriet</Link>
+          <Link to={`/p/${partyKey}/gallery`} className={styles.hiddenBannerBack}>← Galleriet</Link>
           <span className={styles.hiddenBannerLabel}>🙈 Skjulte bilder ({displayPhotos.length})</span>
         </div>
       )}
 
-      {/* FR-A04: Admin pending-deletions badge */}
-      {user?.is_admin && pendingCount > 0 && (
-        <Link to="/admin" className={styles.adminBadge} title="Ventende slettingsforespørsler">
+      {/* 3-dot menu for logged-in users */}
+      {user && (
+        <div className={styles.menuCorner}>
+          <ThreeDotMenu partyKey={partyKey} />
+        </div>
+      )}
+
+      {/* FR-A04: Pending-deletions badge for managers/admins (shown inline in ThreeDotMenu, kept as link shortcut) */}
+      {canModerate && pendingCount > 0 && (
+        <Link to={`/p/${partyKey}/admin`} className={styles.adminBadge} title="Ventende slettingsforespørsler">
           🔔 {pendingCount}
         </Link>
       )}
@@ -187,28 +162,16 @@ export default function GalleryPage() {
         </button>
       )}
 
-      {/* ── Portrait phone: single-photo view (FR-G04) ─── */}
-      {showPortrait && !showFullScreen && (
-        <PortraitView
-          photos={displayPhotos}
-          currentIndex={currentIndex}
-          onNavigate={navigate}
-          onOpenFullScreen={() => openFullScreen(currentIndex)}
-          onShowGrid={() => setMobileView('grid')}
-          onPhotoUpdate={handlePhotoUpdate}
-          onPhotoFlagged={handlePhotoFlagged}
-        />
-      )}
-
-      {/* ── Grid view (default on desktop, toggle on mobile) (FR-G07) ─── */}
-      {showGrid && !showFullScreen && (
+      {/* ── Grid view — default on all screen sizes (FR-G07) ─── */}
+      {!showFullScreen && (
         <GridView
           photos={displayPhotos}
           currentIndex={currentIndex}
           onPhotoClick={handleGridPhotoClick}
-          isMobile={isMobile}
+          isMobile={false}
           isHiddenMode={isHiddenMode}
           onUnhide={handleUnhide}
+          partyKey={partyKey}
         />
       )}
 
@@ -219,12 +182,14 @@ export default function GalleryPage() {
           currentIndex={currentIndex}
           onNavigate={navigate}
           onClose={() => setShowFullScreen(false)}
+          user={user}
+          onFlag={handlePhotoFlagged}
         />
       )}
 
       {/* Upload shortcut FAB — not shown in hidden gallery mode */}
       {!isHiddenMode && (
-        <Link to="/upload" className={styles.uploadBtn} aria-label="Last opp bilder">
+        <Link to={`/p/${partyKey}/upload`} className={styles.uploadBtn} aria-label="Last opp bilder">
           +
         </Link>
       )}

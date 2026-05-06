@@ -6,7 +6,7 @@ import styles from './FlagButton.module.css'
  * Shown on photos the current user doesn't own.
  * Flags the photo for admin review and removes it from the gallery list.
  */
-export function FlagButton({ photo, onFlagged }) {
+export function FlagButton({ photo, onFlagged, partyKey }) {
   const [busy, setBusy]       = useState(false)
   const [flagged, setFlagged] = useState(false)
 
@@ -19,7 +19,7 @@ export function FlagButton({ photo, onFlagged }) {
     if (!ok) return
     setBusy(true)
     try {
-      await api.post(`/api/photos/${photo.id}/flag`)
+      await api.post(partyKey ? `/api/p/${partyKey}/photos/${photo.id}/flag` : `/api/photos/${photo.id}/flag`)
       setFlagged(true)
       onFlagged?.(photo.id)
     } catch (err) {

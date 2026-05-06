@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { api } from '../../api/client.js'
 import styles from './ModerationGrid.module.css'
 
-export function ModerationGrid({ photos, onUpdate }) {
+export function ModerationGrid({ photos, onUpdate, partyKey }) {
   const [busy, setBusy] = useState({})
 
   async function toggle(photo) {
@@ -10,7 +10,10 @@ export function ModerationGrid({ photos, onUpdate }) {
     setBusy((b) => ({ ...b, [photo.id]: true }))
     try {
       const action = photo.is_hidden ? 'unhide' : 'hide'
-      await api.patch(`/api/admin/photos/${photo.id}/${action}`)
+      const url = partyKey
+        ? `/api/p/${partyKey}/admin/photos/${photo.id}/${action}`
+        : `/api/admin/photos/${photo.id}/${action}`
+      await api.patch(url)
       onUpdate(photo.id, { is_hidden: !photo.is_hidden })
     } catch (err) {
       alert(err.message)
@@ -32,7 +35,7 @@ export function ModerationGrid({ photos, onUpdate }) {
         >
           <div className={styles.imgWrap}>
             <img
-              src={`/api/photos/${photo.id}/thumbnail`}
+              src={partyKey ? `/api/p/${partyKey}/photos/${photo.id}/thumbnail` : `/api/photos/${photo.id}/thumbnail`}
               alt={photo.caption || photo.original_name}
               loading="lazy"
               className={styles.img}

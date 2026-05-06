@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import styles from './DownloadButton.module.css'
 
-export function DownloadButton({ photoCount }) {
+export function DownloadButton({ photoCount, partyKey }) {
   const [downloading, setDownloading] = useState(false)
 
   function handleDownload() {
     setDownloading(true)
     // Trigger download via a temporary anchor — the browser streams it
     const a = document.createElement('a')
-    a.href = '/api/admin/download'
+    a.href = partyKey ? `/api/p/${partyKey}/admin/download` : '/api/admin/download'
     a.download = 'party-photos.zip'
     document.body.appendChild(a)
     a.click()

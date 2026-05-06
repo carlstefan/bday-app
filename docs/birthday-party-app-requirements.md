@@ -2,7 +2,7 @@
 
 **Project:** Carl Stefan & Trude's 50th Birthday Party Photo Submission App  
 **Status:** Draft  
-**Last updated:** 2026-04-27 (v5)  
+**Last updated:** 2026-05-06 (v6)  
 
 ---
 
@@ -106,6 +106,7 @@ Acceptance criteria:
 
 Acceptance criteria:
 - If the user is logged in, the name field is pre-filled with their Google display name but remains editable
+- For anonymous users, the name field placeholder text should use a generic example name (e.g. "Ola Nordmann") — never a real person's name
 - Name field is optional, max 60 characters
 - Caption field is optional, max 200 characters
 - When uploading multiple photos, the name and caption apply to the entire batch — each photo receives its own individual copy stored in the database
@@ -133,17 +134,8 @@ Gallery access is restricted to logged-in users. All gallery views display only 
 
 ---
 
-**FR-G04 — Gallery: mobile single-photo view**  
-*Priority: Must*
-
-> As a guest on a mobile phone, I want to see one photo at a time with easy navigation and a quick way to switch to the grid overview, so that I can browse photos naturally on a small screen.
-
-Acceptance criteria:
-- On screens narrower than 480px CSS width, the default gallery view shows one photo at a time filling the screen width, rendered using the 1000px thumbnail
-- Swiping left or right navigates to the previous or next photo
-- A grid icon in the upper-left corner switches to the grid view (FR-G07)
-- Tapping the photo opens the full-screen view (FR-G06)
-- The uploader name and caption are shown beneath the photo
+**FR-G04 — *(Superseded)***  
+*The mobile single-photo (portrait) view has been removed. Grid view is now the default on all screen sizes. This requirement is no longer active.*
 
 ---
 
@@ -158,14 +150,15 @@ Acceptance criteria:
 > As a guest, I want to view a photo at full quality filling my entire screen, with the ability to zoom in and swipe through photos, so that I can appreciate the details.
 
 Acceptance criteria:
-- On mobile: entered by tapping a photo in the single-photo view (FR-G04)
-- On larger screens: entered by clicking any thumbnail in the grid (FR-G07)
+- Entered by tapping/clicking any thumbnail in the grid (FR-G07) on all screen sizes
 - The full original image is always loaded regardless of screen size
-- The image fills the entire screen with no UI chrome except a minimal close/back control — no uploader name or caption is shown, keeping the view clean for inspecting the image
-- Navigation — touch: swipe left/right to move to the previous/next photo; keyboard: left/right arrow keys; mouse: scroll wheel zooms (does not navigate)
+- The image fills the entire screen; no uploader name or caption is shown in this view
+- **Overlay controls:** a slim bar at the top of the screen contains three controls: a grid/back button (exits full-screen), the 3-dot menu (if logged in), and a flag button (if logged in). The bar auto-hides after 2–3 seconds of inactivity and reappears on tap (mobile) or mouse movement (desktop)
+- Navigation — touch: swipe left/right to move to the previous/next photo; keyboard: left/right arrow keys
 - Zooming — touch: pinch to zoom in/out; mouse: scroll wheel zooms in/out
-- When the image is zoomed in beyond 1×, swiping or dragging pans the image rather than navigating to the next photo; navigation resumes when zoom returns to 1×
-- Dismissing the full-screen view — touch: swipe down or tap the close control; keyboard: Escape; mouse: click the close control — returns the user to the view they came from, at the same photo position
+- When the image is zoomed in beyond 1×, swiping or dragging pans the image rather than navigating; navigation resumes when zoom returns to 1×
+- Dismissing the full-screen view — touch: swipe down or tap the grid/back button; keyboard: Escape; mouse: click the grid/back button — returns the user to the grid at the same photo position
+- Anonymous users cannot access the full-screen view; tapping a photo prompts login instead
 
 ---
 
@@ -175,13 +168,11 @@ Acceptance criteria:
 > As a guest, I want to see photos in a responsive grid so I can get an overview of all submissions and jump to any photo.
 
 Acceptance criteria:
-- Default view on screens 480px CSS width and above
-- Available on all screen sizes — on mobile it is reached via the grid icon in FR-G04
+- **Default view on all screen sizes** (mobile single-photo view has been removed — see FR-G04)
 - The number of columns is responsive: approximately 2 columns on small/portrait screens, 3–4 on tablets, 4–6+ on wide/desktop screens; the exact count should feel visually balanced for the screen width
 - Thumbnails are rendered using the 1000px thumbnail
 - The scroll wheel scrolls the page normally up and down through the full photo collection
-- On mobile: tapping a thumbnail returns to the single-photo view (FR-G04) at that photo
-- On screens 480px and above: tapping a thumbnail opens the full-screen view (FR-G06) directly
+- Tapping/clicking any thumbnail opens the full-screen view (FR-G06) directly on all screen sizes
 - The uploader name and caption are shown as a subtle overlay or below each thumbnail
 
 ---
@@ -206,10 +197,10 @@ Acceptance criteria:
 > As a logged-in guest, I want to filter the gallery to show only the photos I have uploaded, so that I can quickly find and manage my own contributions.
 
 Acceptance criteria:
-- A toggle or filter control is available in all gallery views (portrait phone, sushi bar, grid)
+- A toggle or filter control is available in the gallery grid view
 - When the filter is active, only photos associated with the logged-in user's account are shown
 - The filter state is indicated clearly (e.g. highlighted button or label)
-- The filter persists across view changes (sushi bar ↔ grid) within the same session but resets on sign-out
+- The filter state persists within the same session but resets on sign-out
 - If the user has no uploaded photos, a friendly empty state message is shown
 
 ---
@@ -220,11 +211,46 @@ Acceptance criteria:
 > As a logged-in guest viewing one of my own photos, I want a quick-access action menu, so that I can edit the caption or flag it for deletion without hunting for separate controls.
 
 Acceptance criteria:
-- An action menu icon (e.g. a three-dot or ellipsis button) is visible on own photos in the mobile single-photo view (FR-G04) and in the full-screen view (FR-G06), but only for photos belonging to the logged-in user
+- An action menu icon (e.g. a three-dot or ellipsis button) is visible on own photos in the full-screen view (FR-G06), but only for photos belonging to the logged-in user
 - Opening the menu presents exactly two options: **Update caption** and **Flag for deletion**
 - Selecting **Update caption** opens an inline or modal edit field pre-filled with the existing caption (see FR-G03)
 - Selecting **Flag for deletion** initiates the flagging flow (see FR-G08)
 - The action menu is not shown on other users' photos or on anonymously uploaded photos
+
+---
+
+**FR-G11 — Upload consent notice**  
+*Priority: Must*
+
+> As a party organiser, I want guests to be informed that their photos may be used for private purposes, so that there is no misunderstanding about how photos will be used.
+
+Acceptance criteria:
+- A small-font notice is displayed beneath the submit button on the upload page at all times, for all users (anonymous and logged in)
+- Text: *"By submitting photos, you accept that the party owner may use them for private purposes, including on their own private social media accounts."*
+- The notice appears on every upload — it is not a one-time checkbox
+
+---
+
+**FR-G12 — User account preferences**  
+*Priority: Should*
+
+> As a logged-in user, I want to manage my account so that I can update my display name or remove my account if I wish.
+
+Acceptance criteria:
+- A **Preferences** option is available in the 3-dot menu for all logged-in users
+- **Change display name:** the user can update their display name; the change applies to the `users` record and is reflected in future uploads; previously uploaded photos retain the name stored at upload time
+- **Delete account:** the user can permanently delete their account; a confirmation dialog is shown before deletion with the text: *"Are you sure? Your photos will remain in the gallery but your account and login access will be removed permanently."*; on deletion, the user's account is removed, `user_id` on their photos is set to NULL (photos remain), and their session is ended
+
+---
+
+**FR-G13 — Submission state messages**  
+*Priority: Must*
+
+> As a visitor, I want to see a clear explanation when I cannot upload photos, so that I am not confused by missing upload controls.
+
+Acceptance criteria:
+- If `submissions_open = false` for the party: the upload area is replaced with the message *"The party owner is not currently allowing uploads."*
+- If `anonymous_uploads_enabled = false` and the user is not logged in: the upload area shows a message that anonymous uploads are not enabled for this party, with a prompt to log in
 
 ---
 
@@ -467,7 +493,7 @@ The following items are explicitly excluded from the initial version:
 - Comments or reactions on photos
 - Email notifications
 - Guests being able to delete their own uploads directly (deletion requires admin approval via the flagging workflow)
-- Editing the uploader name after upload (caption editing only)
+- Editing the uploader name on individual photos after upload (the display name on the user account can be changed via Preferences — FR-G12 — but this does not retroactively update photo records)
 - Serving more than two image sizes (thumbnail and original) — the 1000px thumbnail covers all gallery views; the full original is used for the sushi bar centre on large screens and the full-screen view
 
 ---

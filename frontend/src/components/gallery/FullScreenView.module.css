@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: #fdf5eb;          /* warm cream — pastel everywhere */
+  background: #fdf5eb;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,11 +37,10 @@
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
-  /* subtle shadow so photo pops off the cream background */
   filter: drop-shadow(0 4px 24px rgba(60, 30, 0, 0.18));
 }
 
-/* ── Top bar ───────────────────────────────────────────────────────────── */
+/* ── Top overlay bar (auto-hides) ──────────────────────────────────────── */
 
 .topBar {
   position: absolute;
@@ -57,15 +56,21 @@
     rgba(253, 245, 235, 0.92) 0%,
     rgba(253, 245, 235, 0.0) 100%
   );
+  transition: opacity 0.3s ease;
 }
 
-.counter {
-  color: #7a6655;
-  font-size: 0.82rem;
-  letter-spacing: 0.04em;
+.topBarVisible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.closeBtn {
+.topBarHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Grid/back button */
+.gridBtn {
   background: rgba(42, 31, 21, 0.1);
   border: 1px solid rgba(42, 31, 21, 0.15);
   color: #2a1f15;
@@ -79,9 +84,44 @@
   cursor: pointer;
   line-height: 1;
   transition: background 0.15s;
+  flex-shrink: 0;
 }
 
-.closeBtn:hover {
+.gridBtn:hover {
+  background: rgba(42, 31, 21, 0.18);
+}
+
+.counter {
+  color: #7a6655;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+
+/* Right side controls */
+.topBarRight {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.flagBtn {
+  background: rgba(42, 31, 21, 0.1);
+  border: 1px solid rgba(42, 31, 21, 0.15);
+  color: #2a1f15;
+  font-size: 1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.flagBtn:hover {
   background: rgba(42, 31, 21, 0.18);
 }
 

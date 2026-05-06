@@ -1,12 +1,34 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { useParams } from 'react-router-dom'
 import { PhotoImage } from './PhotoImage.jsx'
+import { FlagButton } from './FlagButton.jsx'
 import { usePinchZoom } from '../../hooks/usePinchZoom.js'
+import ThreeDotMenu from '../ThreeDotMenu.jsx'
 import styles from './FullScreenView.module.css'
 
-export function FullScreenView({ photos, currentIndex, onNavigate, onClose }) {
-  const photo     = photos[currentIndex]
-  const containerRef = useRef(null)
+const AUTOHIDE_MS = 2500
 
+export function FullScreenView({ photos, currentIndex, onNavigate, onClose, user, onFlag }) {
+  const photo        = photos[currentIndex]
+  const containerRef = useRef(null)
+  const { partyKey } = useParams()
+
+  // ── Overlay auto-hide ─────────────────────────────────────────────────────
+  const [overlayVisible, setOverlayVisible] = useState(true)
+  const hideTimer = useRef(null)
+
+  const showOverlay = useCallback(() => {
+    setOverlayVisible(true)
+    clearTimeout(hideTimer.current)
+    hideTimer.current = setTimeout(() => setOverlayVisible(false), AUTOHIDE_MS)
+  }, [])
+
+  useEffect(() => {
+    showOverlay()
+    return () => clearTimeout(hideTimer.current)
+  }, [showOverlay, currentIndex])
+
+  // ── Pinch/swipe/zoom ──────────────────────────────────────────────────────
   const { transform, reset, handlers, onWheel } = usePinchZoom({
     onPrev:    () => { reset(); onNavigate(Math.max(0, currentIndex - 1)) },
     onNext:    () => { reset(); onNavigate(Math.min(photos.length - 1, currentIndex + 1)) },
@@ -43,10 +65,20 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose }) {
 
   const isZoomed = transform.scale > 1.05
 
+  function handleContainerPointerUp() {
+    showOverlay()
+  }
+
+  function handleContainerMouseMove() {
+    showOverlay()
+  }
+
   return (
     <div
       ref={containerRef}
       className={styles.overlay}
+      onPointerUp={handleContainerPointerUp}
+      onMouseMove={handleContainerMouseMove}
       {...handlers}
     >
       {/* Dismiss backdrop tap (when not zoomed) */}
@@ -56,7 +88,7 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose }) {
         aria-hidden
       />
 
-      {/* Image — also handles tap-to-close when not zoomed (covers full viewport) */}
+      {/* Image */}
       <div
         className={styles.imageWrap}
         style={{
@@ -70,30 +102,47 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose }) {
           photo={photo}
           src="full"
           className={styles.image}
+          partyKey={partyKey}
         />
       </div>
 
-      {/* Top bar */}
-      <div className={styles.topBar}>
+      {/* ── Auto-hiding overlay bar (FR-G06) ── */}
+      <div
+        className={`${styles.topBar} ${overlayVisible ? styles.topBarVisible : styles.topBarHidden}`}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        {/* Grid / back button — always visible */}
+        <button className={styles.gridBtn} onClick={onClose} aria-label="Tilbake til grid">
+          ⊞
+        </button>
+
         <span className={styles.counter}>{currentIndex + 1} / {photos.length}</span>
-        <button className={styles.closeBtn} onClick={onClose} aria-label="Close">✕</button>
+
+        <div className={styles.topBarRight}>
+          {/* Flag button — logged-in users only */}
+          {user && (
+            <FlagButton photo={photo} onFlagged={onFlag} partyKey={partyKey} />
+          )}
+          {/* 3-dot menu */}
+          {user && <ThreeDotMenu partyKey={partyKey} />}
+        </div>
       </div>
 
-      {/* Prev / Next buttons (no nav when zoomed) */}
+      {/* Prev / Next arrows (no nav when zoomed) */}
       {!isZoomed && (
         <>
           {currentIndex > 0 && (
             <button
               className={`${styles.navBtn} ${styles.prev}`}
               onClick={() => { reset(); onNavigate(currentIndex - 1) }}
-              aria-label="Previous photo"
+              aria-label="Forrige bilde"
             >‹</button>
           )}
           {currentIndex < photos.length - 1 && (
             <button
               className={`${styles.navBtn} ${styles.next}`}
               onClick={() => { reset(); onNavigate(currentIndex + 1) }}
-              aria-label="Next photo"
+              aria-label="Neste bilde"
             >›</button>
           )}
         </>

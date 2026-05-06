@@ -2,23 +2,16 @@ import archiver from 'archiver'
 import path from 'path'
 import fs from 'fs'
 import { db } from '../db/index.js'
+import { resolveOriginalPath } from './imageProcessor.js'
 
-const UPLOADS_PATH = () => process.env.UPLOADS_PATH || path.join(process.cwd(), 'uploads')
-
-/**
- * Build a filename for the zip entry.
- * Format: YYYYMMDD_HHMMSS_[uploader_name].[ext]
- * Falls back to created_at if captured_at is absent.
- */
 function zipEntryName(photo) {
-  const raw  = photo.captured_at || photo.created_at || ''
-  // Parse ISO or SQLite datetime "YYYY-MM-DDTHH:MM:SS" / "YYYY-MM-DD HH:MM:SS"
-  const dt   = raw.replace('T', ' ')
-  const m    = dt.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/)
+  const raw   = photo.captured_at || photo.created_at || ''
+  const dt    = raw.replace('T', ' ')
+  const m     = dt.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/)
   const stamp = m ? `${m[1]}${m[2]}${m[3]}_${m[4]}${m[5]}${m[6]}` : 'unknown'
 
   const safeUploader = (photo.uploader_name || 'guest')
-    .replace(/[^a-zA-Z0-9\u00C0-\u024F _-]/g, '')  // keep ASCII + Latin extended
+    .replace(/[^a-zA-Z0-9À-ɏ _-]/g, '')
     .trim()
     .replace(/\s+/g, '_')
     .slice(0, 40)
@@ -29,19 +22,28 @@ function zipEntryName(photo) {
 
 /**
  * Stream all non-deleted photos as a zip to the writable stream `dest`.
+ *
+ * @param {import('stream').Writable} dest
+ * @param {object} [options]
+ * @param {number} [options.partyId]   - when set, limit to photos in this party
+ * @param {string} [options.partyKey]  - used to resolve file paths
  */
-export async function buildZip(dest) {
+export async function buildZip(dest, { partyId = null, partyKey = null } = {}) {
+  const partyCond  = partyId ? 'AND p.party_id = ?' : ''
+  const partyArgs  = partyId ? [partyId] : []
+
   const photos = db.prepare(`
-    SELECT id, filename, original_name, uploader_name, caption, captured_at, created_at
-    FROM photos
-    WHERE id NOT IN (
+    SELECT p.id, p.filename, p.original_name, p.uploader_name, p.caption, p.captured_at, p.created_at
+    FROM photos p
+    WHERE p.id NOT IN (
       SELECT photo_id FROM deletion_requests WHERE status = 'deleted'
     )
-    ORDER BY COALESCE(captured_at, created_at) ASC
-  `).all()
+    ${partyCond}
+    ORDER BY COALESCE(p.captured_at, p.created_at) ASC
+  `).all(...partyArgs)
 
   return new Promise((resolve, reject) => {
-    const archive = archiver('zip', { zlib: { level: 1 } }) // fast compression
+    const archive = archiver('zip', { zlib: { level: 1 } })
 
     archive.on('error', reject)
     dest.on('error', reject)
@@ -50,11 +52,9 @@ export async function buildZip(dest) {
     archive.pipe(dest)
 
     for (const photo of photos) {
-      const filePath = path.join(UPLOADS_PATH(), photo.filename)
+      const filePath = resolveOriginalPath(photo.filename, partyKey)
       if (!fs.existsSync(filePath)) continue
-
-      const entryName = zipEntryName(photo)
-      archive.file(filePath, { name: entryName })
+      archive.file(filePath, { name: zipEntryName(photo) })
     }
 
     archive.finalize()

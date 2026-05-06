@@ -3,14 +3,18 @@ import styles from './PhotoImage.module.css'
 
 /**
  * Unified image component.
- * src='thumbnail' — serves /api/photos/:id/thumbnail
+ * src='thumbnail' — serves the party-scoped thumbnail
  * src='full'      — loads thumbnail first, swaps to full original when ready
+ *
+ * When partyKey is provided, uses /api/p/:partyKey/photos/:id/... routes.
+ * Falls back to the legacy /api/photos/:id/... routes when partyKey is absent.
  */
-export function PhotoImage({ photo, src = 'thumbnail', alt, className, style, onLoad }) {
+export function PhotoImage({ photo, src = 'thumbnail', alt, className, style, onLoad, partyKey }) {
   const [fullReady, setFullReady] = useState(false)
 
-  const thumbUrl = `/api/photos/${photo.id}/thumbnail`
-  const fullUrl  = `/api/photos/${photo.id}/image`
+  const base     = partyKey ? `/api/p/${partyKey}/photos/${photo.id}` : `/api/photos/${photo.id}`
+  const thumbUrl = `${base}/thumbnail`
+  const fullUrl  = `${base}/image`
   const altText  = alt || photo.caption || photo.original_name || 'Party photo'
 
   if (src === 'thumbnail') {

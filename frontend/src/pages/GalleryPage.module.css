@@ -6,6 +6,14 @@
   background: #fdecd8;          /* warm peach — matches grid background */
 }
 
+/* 3-dot menu anchor in gallery */
+.menuCorner {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+}
+
 /* ── Loading / error / empty states ───────────────────────────────────── */
 
 .state {

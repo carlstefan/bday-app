@@ -1,16 +1,7 @@
+import { PhotoImage } from './PhotoImage.jsx'
 import styles from './GridView.module.css'
 
-/**
- * Responsive photo grid (FR-G07).
- *
- * onPhotoClick(idx) — called when a thumbnail is tapped.
- *   On desktop (>=480px): opens full-screen view directly.
- *   On mobile (<480px):   returns to single-photo view at that photo.
- * isMobile        — used for accessible label only (UX is driven by parent)
- * isHiddenMode    — when true, shows an "Unhide" button on each thumbnail
- * onUnhide(id)    — called when admin clicks "Unhide" on a thumbnail
- */
-export function GridView({ photos, currentIndex, onPhotoClick, isMobile, isHiddenMode, onUnhide }) {
+export function GridView({ photos, currentIndex, onPhotoClick, isMobile, isHiddenMode, onUnhide, partyKey }) {
   return (
     <div className={styles.grid}>
       {photos.map((photo, idx) => (
@@ -26,11 +17,12 @@ export function GridView({ photos, currentIndex, onPhotoClick, isMobile, isHidde
           }
           onKeyDown={(e) => e.key === 'Enter' && onPhotoClick(idx)}
         >
-          <img
-            src={`/api/photos/${photo.id}/thumbnail`}
+          <PhotoImage
+            photo={photo}
+            src="thumbnail"
             alt={photo.caption || photo.original_name || `Bilde ${idx + 1}`}
-            loading="lazy"
             className={styles.img}
+            partyKey={partyKey}
           />
 
           {/* Caption + uploader name overlay — bottom gradient */}

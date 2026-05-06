@@ -287,3 +287,31 @@
   text-decoration: none;
   font-weight: 600;
 }
+
+/* FR-G11: Upload consent notice */
+.consentNotice {
+  font-size: 0.78rem;
+  color: #a08070;
+  text-align: center;
+  margin: 0.25rem 0 0;
+  line-height: 1.5;
+}
+
+/* FR-G13: Submission state messages */
+.submissionsClosedMsg,
+.anonDisabledMsg {
+  background: #fff8f0;
+  border: 1.5px solid #f0c090;
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  color: #7a6655;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.anonDisabledMsg a {
+  color: #e8832a;
+  font-weight: 600;
+  text-decoration: none;
+}

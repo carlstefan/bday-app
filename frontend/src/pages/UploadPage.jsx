@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useParty } from '../context/PartyContext.jsx'
 import styles from './UploadPage.module.css'
 
 const MAX_FILES = 20
@@ -9,6 +10,9 @@ const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/h
 
 export default function UploadPage() {
   const { user } = useAuth()
+  const { partyKey } = useParams()
+  const partyCtx = useParty()
+  const party = partyCtx?.party ?? null
   const fileInputRef = useRef(null)
 
   const [files, setFiles]               = useState([])
@@ -87,8 +91,9 @@ export default function UploadPage() {
     if (caption.trim())      formData.append('caption', caption.trim())
     files.forEach((f) => formData.append('photos', f))
 
+    const uploadUrl = partyKey ? `/api/p/${partyKey}/photos` : '/api/photos'
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', '/api/photos')
+    xhr.open('POST', uploadUrl)
     xhr.withCredentials = true
 
     xhr.upload.onprogress = (e) => {
@@ -126,6 +131,39 @@ export default function UploadPage() {
     xhr.send(formData)
   }
 
+  // FR-G13: Submissions closed for this party
+  if (party?.submissions_open === false) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <p className={styles.submissionsClosedMsg}>
+            Arrangøren tillater for øyeblikket ikke opplastinger.
+          </p>
+          <p className={styles.backLink}>
+            <Link to="/">← Tilbake til forsiden</Link>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // FR-G13: Anonymous uploads disabled and user not logged in
+  if (party?.anonymous_uploads_enabled === false && !user) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <p className={styles.anonDisabledMsg}>
+            Anonym opplasting er ikke aktivert for denne festen.{' '}
+            <Link to="/login">Logg inn for å laste opp bilder →</Link>
+          </p>
+          <p className={styles.backLink}>
+            <Link to="/">← Tilbake til forsiden</Link>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   if (result) {
     return (
       <div className={styles.page}>
@@ -142,13 +180,15 @@ export default function UploadPage() {
             </button>
 
             {user ? (
-              <Link to="/gallery" className={styles.btnSecondary}>Se galleriet</Link>
+              <Link to={partyKey ? `/p/${partyKey}/gallery` : '/gallery'} className={styles.btnSecondary}>Se galleriet</Link>
             ) : (
               <div className={styles.nudge}>
                 <p>
                   <strong>Vil du se bildene fra festen?</strong>
                   <br />
-                  <Link to="/login?next=/gallery">Logg inn for å se galleriet →</Link>
+                  <Link to={partyKey ? `/login?next=${encodeURIComponent(`/p/${partyKey}/gallery`)}` : '/login?next=/gallery'}>
+                    Logg inn for å se galleriet →
+                  </Link>
                 </p>
               </div>
             )}
@@ -220,7 +260,7 @@ export default function UploadPage() {
               value={uploaderName}
               onChange={(e) => setUploaderName(e.target.value)}
               maxLength={60}
-              placeholder="F.eks. Preben Refsum Grøtter"
+              placeholder="Ola Nordmann"
             />
           </label>
 
@@ -257,10 +297,15 @@ export default function UploadPage() {
           >
             {progress !== null ? `Laster opp… ${progress}%` : `Last opp ${files.length > 0 ? files.length + ' bilde' + (files.length > 1 ? 'r' : '') : ''}`}
           </button>
+
+          {/* FR-G11: Upload consent notice */}
+          <p className={styles.consentNotice}>
+            Ved å laste opp bilder godtar du at arrangøren kan bruke dem til private formål, inkludert på egne private sosiale medier.
+          </p>
         </form>
 
         <p className={styles.backLink}>
-          <Link to="/">← Tilbake til forsiden</Link>
+          <Link to={partyKey ? `/p/${partyKey}` : '/'}>← Tilbake til forsiden</Link>
         </p>
       </div>
     </div>
