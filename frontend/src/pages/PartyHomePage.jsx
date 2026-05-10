@@ -1,15 +1,35 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useParty } from '../context/PartyContext.jsx'
+import { api } from '../api/client.js'
 import ThreeDotMenu from '../components/ThreeDotMenu.jsx'
 import styles from './HomePage.module.css'
 import partyStyles from './PartyHomePage.module.css'
 
 export default function PartyHomePage() {
-  const { user }    = useAuth()
+  const { user, refetch: refreshUser } = useAuth()
   const { partyKey } = useParams()
   const { party, loading, error } = useParty()
+
+  // FR-G15: first-visit join banner state
+  const hasRole = user?.is_super_admin || (user?.party_roles || []).some(r => r.party_key === partyKey)
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [joining, setJoining] = useState(false)
+  const showBanner = user && !hasRole && !bannerDismissed
+
+  async function handleJoin() {
+    setJoining(true)
+    try {
+      await api.post(`/api/parties/${partyKey}/join`)
+      await refreshUser()        // re-fetch /api/auth/me so party_roles updates
+      setBannerDismissed(true)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setJoining(false)
+    }
+  }
 
   // Set browser tab title to party name
   useEffect(() => {
@@ -36,13 +56,30 @@ export default function PartyHomePage() {
     )
   }
 
-  const hasUserRole = user?.party_roles?.some(r => r.party_key === partyKey)
   const canModerate = user?.is_super_admin || user?.party_roles?.some(
     r => r.party_key === partyKey && ['manager', 'owner'].includes(r.role)
   )
 
   return (
     <div className={styles.page}>
+      {/* FR-G15: First-visit welcome banner */}
+      {showBanner && (
+        <div className={partyStyles.welcomeBanner}>
+          <p>
+            Hei, {user.display_name}! Du besøker <strong>{party?.name || partyKey}</strong> for første gang.
+            Vil du bli med og få tilgang til galleriet?
+          </p>
+          <div className={partyStyles.welcomeActions}>
+            <button className={partyStyles.joinBtn} onClick={handleJoin} disabled={joining}>
+              {joining ? '…' : 'Bli med på festen'}
+            </button>
+            <button className={partyStyles.dismissBtn} onClick={() => setBannerDismissed(true)}>
+              Ikke nå
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 3-dot menu for logged-in users */}
       {user && (
         <div className={partyStyles.menuCorner}>
@@ -98,7 +135,7 @@ export default function PartyHomePage() {
           )}
         </div>
 
-        {user && (
+        {user && !showBanner && (
           <p className={styles.welcome}>
             Hei, {user.display_name}!{' '}
             {canModerate && (

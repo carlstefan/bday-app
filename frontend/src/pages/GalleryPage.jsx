@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Link, useSearchParams, useParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams, useParams } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useParty } from '../context/PartyContext.jsx'
@@ -11,10 +11,17 @@ import ThreeDotMenu from '../components/ThreeDotMenu.jsx'
 import styles from './GalleryPage.module.css'
 
 export default function GalleryPage() {
-  const { user }           = useAuth()
-  const { partyKey }       = useParams()
-  const { party }          = useParty() || {}
-  const [searchParams]     = useSearchParams()
+  const { user }              = useAuth()
+  const { partyKey, photoId } = useParams()
+  const redirect              = useNavigate()
+  const { party }             = useParty() || {}
+  const [searchParams]        = useSearchParams()
+
+  // FR-G15: redirect logged-in users with no party role to the party front page
+  const hasRole = user?.is_super_admin || (user?.party_roles || []).some(r => r.party_key === partyKey)
+  useEffect(() => {
+    if (user && !hasRole) redirect(`/p/${partyKey}`, { replace: true })
+  }, [user, hasRole, partyKey, redirect])
 
   // FR-A05: detect hidden gallery mode (managers/admins only)
   const canModerate = user?.is_super_admin || (user?.party_roles || []).some(
@@ -50,6 +57,16 @@ export default function GalleryPage() {
       setCurrentIndex((i) => Math.min(i, displayPhotos.length - 1))
     }
   }, [displayPhotos.length])
+
+  // FR-G14: auto-open a specific photo when arriving via direct link
+  useEffect(() => {
+    if (!photoId || photos.length === 0) return
+    const idx = photos.findIndex(p => String(p.id) === photoId)
+    if (idx !== -1) {
+      setCurrentIndex(idx)
+      setShowFullScreen(true)
+    }
+  }, [photoId, photos])
 
   const navigate = useCallback((idx) => {
     setCurrentIndex(Math.max(0, Math.min(displayPhotos.length - 1, idx)))

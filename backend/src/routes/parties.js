@@ -195,6 +195,29 @@ partyRouter.post('/bans', requireAuth, (req, res) => {
   res.status(201).json({ message: 'User banned from this party.' })
 })
 
+// ── POST /api/parties/:partyKey/join — self-register as guest ─────────────
+partyRouter.post('/join', requireAuth, (req, res) => {
+  // Check ban (global or party-scoped)
+  const banned = db.prepare(
+    'SELECT id FROM bans WHERE user_id = ? AND (party_id IS NULL OR party_id = ?)'
+  ).get(req.user.id, req.party.id)
+  if (banned) return res.status(403).json({ error: 'You are banned from this party.' })
+
+  // Already a member — return existing role
+  const existing = db.prepare(
+    'SELECT role FROM party_roles WHERE user_id = ? AND party_id = ?'
+  ).get(req.user.id, req.party.id)
+  if (existing) return res.json({ role: existing.role, message: 'Already a member.' })
+
+  // Insert guest row
+  db.prepare(
+    'INSERT INTO party_roles (user_id, party_id, role, granted_by) VALUES (?, ?, ?, ?)'
+  ).run(req.user.id, req.party.id, 'guest', req.user.id)
+
+  logEvent('role_grant', req.user.id, req.ip, { party_key: req.party.party_key, role: 'guest', self_join: true })
+  res.status(201).json({ role: 'guest', message: 'Joined party as guest.' })
+})
+
 // ── PATCH /api/parties/:partyKey/featured-photo ────────────────────────────
 partyRouter.patch('/featured-photo', requireAuth, (req, res) => {
   const isOwnerOrAdmin = req.user.is_super_admin || userHasPartyRole(req.user, req.party, 'owner')
