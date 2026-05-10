@@ -63,6 +63,24 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose, user
     return () => { document.body.style.overflow = '' }
   }, [])
 
+  // FR-G14: keep URL in sync with current photo; restore gallery URL on close
+  useEffect(() => {
+    if (!partyKey) return
+    window.history.replaceState(null, '', `/p/${partyKey}/gallery/${photo.id}`)
+    return () => {
+      window.history.replaceState(null, '', `/p/${partyKey}/gallery`)
+    }
+  }, [photo.id, partyKey])
+
+  // Copy-link feedback state
+  const [copied, setCopied] = useState(false)
+  function handleCopyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
   const isZoomed = transform.scale > 1.05
 
   function handleContainerPointerUp() {
@@ -114,6 +132,16 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose, user
         {/* Grid / back button — always visible */}
         <button className={styles.gridBtn} onClick={onClose} aria-label="Tilbake til grid">
           ⊞
+        </button>
+
+        {/* FR-G14: Copy direct link — always visible */}
+        <button
+          className={styles.copyLinkBtn}
+          onClick={handleCopyLink}
+          aria-label="Kopier lenke til bilde"
+          title={copied ? 'Kopiert!' : 'Kopier lenke'}
+        >
+          {copied ? '✓' : '🔗'}
         </button>
 
         <span className={styles.counter}>{currentIndex + 1} / {photos.length}</span>

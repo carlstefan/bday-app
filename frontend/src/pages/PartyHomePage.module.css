@@ -1,3 +1,58 @@
+/* ── FR-G15: First-visit welcome banner ─────────────────────────────────── */
+
+.welcomeBanner {
+  position: relative;
+  z-index: 50;
+  background: #fff3e8;
+  border-bottom: 1px solid #e8d0ba;
+  padding: 1.1rem 1.5rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #2a1f15;
+  line-height: 1.5;
+}
+
+.welcomeActions {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.joinBtn {
+  background: #e8832a;
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.joinBtn:hover   { opacity: 0.88; }
+.joinBtn:disabled { opacity: 0.6; cursor: default; }
+
+.dismissBtn {
+  background: none;
+  border: 1.5px solid #e8d0ba;
+  color: #7a6655;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.dismissBtn:hover {
+  border-color: #c0a88a;
+  color: #2a1f15;
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+
 .menuCorner {
   position: fixed;
   top: 1rem;

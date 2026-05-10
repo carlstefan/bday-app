@@ -44,6 +44,15 @@ export default function App() {
             </PartyProvider>
           } />
 
+          {/* FR-G14: direct photo link — must be before the bare gallery route */}
+          <Route path="/p/:partyKey/gallery/:photoId" element={
+            <PartyProvider>
+              <ProtectedRoute>
+                <GalleryPage />
+              </ProtectedRoute>
+            </PartyProvider>
+          } />
+
           <Route path="/p/:partyKey/gallery" element={
             <PartyProvider>
               <ProtectedRoute>

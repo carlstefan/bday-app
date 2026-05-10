@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useParty } from '../context/PartyContext.jsx'
+import { api } from '../api/client.js'
 import styles from './UploadPage.module.css'
 
 const MAX_FILES = 20
@@ -9,11 +10,30 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024  // 50 MB
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp'])
 
 export default function UploadPage() {
-  const { user } = useAuth()
+  const { user, refetch: refreshUser } = useAuth()
   const { partyKey } = useParams()
   const partyCtx = useParty()
   const party = partyCtx?.party ?? null
   const fileInputRef = useRef(null)
+
+  // FR-G15: first-visit join banner (non-blocking on upload page)
+  const hasRole = user?.is_super_admin || (user?.party_roles || []).some(r => r.party_key === partyKey)
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [joining, setJoining] = useState(false)
+  const showBanner = user && partyKey && !hasRole && !bannerDismissed
+
+  async function handleJoin() {
+    setJoining(true)
+    try {
+      await api.post(`/api/parties/${partyKey}/join`)
+      await refreshUser()
+      setBannerDismissed(true)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setJoining(false)
+    }
+  }
 
   const [files, setFiles]               = useState([])
   const [uploaderName, setUploaderName] = useState(user?.display_name || '')
@@ -200,6 +220,24 @@ export default function UploadPage() {
 
   return (
     <div className={styles.page}>
+      {/* FR-G15: First-visit banner — shown above form, does not block upload */}
+      {showBanner && (
+        <div className={styles.welcomeBanner}>
+          <p>
+            Hei, {user.display_name}! Du besøker <strong>{party?.name || partyKey}</strong> for første gang.
+            Vil du bli med og få tilgang til galleriet?
+          </p>
+          <div className={styles.welcomeActions}>
+            <button className={styles.joinBtn} onClick={handleJoin} disabled={joining}>
+              {joining ? '…' : 'Bli med på festen'}
+            </button>
+            <button className={styles.dismissBtn} onClick={() => setBannerDismissed(true)}>
+              Ikke nå
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className={styles.container}>
         <h1 className={styles.title}>Last opp bilder</h1>
         <p className={styles.subtitle}>Del dine minner fra festen!</p>
