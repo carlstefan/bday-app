@@ -1,6 +1,11 @@
 services:
   nginx:
     image: nginx:1.25-alpine
+    # Ports are defined in the environment-specific override files only:
+    #   docker-compose.local.yml  → 0.0.0.0:8081:80
+    #   docker-compose.prod.yml   → 0.0.0.0:80:80  + 0.0.0.0:443:443
+    # Do NOT add ports here — Compose merges port arrays, so any entry here
+    # would be exposed in ALL environments including production.
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
