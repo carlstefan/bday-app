@@ -51,7 +51,8 @@ app.get('/api/health', (_req, res) => {
 app.use((err, _req, res, _next) => {
   console.error(err)
   const status = err.status || 500
-  res.status(status).json({ error: err.message || 'Internal server error.' })
+  const message = err.isOperational ? err.message : 'An unexpected error occurred.'
+  res.status(status).json({ error: message })
 })
 
 export default app

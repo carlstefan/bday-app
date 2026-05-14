@@ -40,7 +40,7 @@ services:
       - letsencrypt:/etc/letsencrypt
       - certbot-www:/var/www/certbot
     # Run manually: docker compose run certbot certonly --webroot ...
-    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done"
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --deploy-hook 'docker exec app-nginx-1 nginx -s reload'; sleep 12h & wait $${!}; done"
 
 volumes:
   letsencrypt:

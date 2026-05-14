@@ -30,10 +30,10 @@ export function registerGoogleStrategy(passport) {
           let user = db.prepare('SELECT * FROM users WHERE google_id = ?').get(googleId)
 
           if (user) {
-            // Update is_admin if email matches admin list and not already set
-            if (isAdmin && !user.is_admin) {
-              db.prepare('UPDATE users SET is_admin = 1 WHERE id = ?').run(user.id)
-              user.is_admin = 1
+            // Sync is_admin in both directions — upgrades and revocations
+            if (user.is_admin !== isAdmin) {
+              db.prepare('UPDATE users SET is_admin = ? WHERE id = ?').run(isAdmin, user.id)
+              user.is_admin = isAdmin
             }
             logEvent('login', user.id, req.ip, { method: 'google', success: true })
           } else {

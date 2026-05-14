@@ -1,0 +1,14 @@
+# Local dev overrides — used together with docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml --env-file .env.local up -d
+
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "0.0.0.0:8081:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  backend:
+    environment:
+      NODE_ENV: development

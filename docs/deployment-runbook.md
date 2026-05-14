@@ -145,13 +145,12 @@ Then open a browser:
 ## Certificate Auto-Renewal
 
 Certbot renews automatically via the `certbot` service (runs `certbot renew` every 12h).
-Nginx must reload to pick up the renewed cert — add a cron job on the VPS:
+The `--deploy-hook` in `docker-compose.prod.yml` reloads Nginx automatically whenever a cert
+is actually renewed, so no separate cron job is needed.
 
-```bash
-crontab -e
-# Add:
-0 3 * * * docker exec bday-app-nginx-1 nginx -s reload
-```
+> **Note:** the deploy hook uses `app-nginx-1` as the container name (derived from the project
+> directory `/app` on the VPS). If you ever clone to a different path, pass
+> `--project-name app` explicitly in the deploy command to keep the name stable.
 
 ---
 
@@ -171,18 +170,34 @@ docker compose logs -f nginx
 ### Backup the database
 ```bash
 docker run --rm \
-  -v bday-app_db-data:/data \
-  -v $(pwd):/backup \
-  alpine tar czf /backup/db-backup-$(date +%Y%m%d).tar.gz -C /data .
+  -v app_db-data:/data \
+  -v /backups:/out \
+  alpine tar czf /out/db-$(date +%Y%m%d).tar.gz -C /data .
 ```
 
 ### Backup uploads
 ```bash
 docker run --rm \
-  -v bday-app_uploads-data:/data \
-  -v $(pwd):/backup \
-  alpine tar czf /backup/uploads-backup-$(date +%Y%m%d).tar.gz -C /data .
+  -v app_uploads-data:/data \
+  -v /backups:/out \
+  alpine tar czf /out/uploads-$(date +%Y%m%d).tar.gz -C /data .
 ```
+
+### Automated daily backups (set up once on the VPS)
+
+```bash
+crontab -e
+# Add both lines:
+0 2 * * * docker run --rm -v app_db-data:/data -v /backups:/out alpine \
+  tar czf /out/db-$(date +\%Y\%m\%d).tar.gz -C /data . \
+  && find /backups -name "db-*.tar.gz" -mtime +14 -delete
+
+0 3 * * * docker run --rm -v app_uploads-data:/data -v /backups:/out alpine \
+  tar czf /out/uploads-$(date +\%Y\%m\%d).tar.gz -C /data . \
+  && find /backups -name "uploads-*.tar.gz" -mtime +7 -delete
+```
+
+Keeps 14 days of database backups and 7 days of upload backups in `/backups/` on the VPS host.
 
 ---
 
