@@ -222,22 +222,22 @@ export default function UploadPage() {
           <h1 className={styles.title}>Last opp bilder</h1>
           <div className={styles.signinPrompt}>
             <p className={styles.signinMessage}>
-              Sign in to have your photos linked to your profile
+              Logg inn for å knytte bildene dine til profilen din
             </p>
             <a href={loginHref} className={styles.signinBtn}>
               {authMode === 'google' && (
                 <img src="/google-logo.svg" alt="" width={20} height={20} />
               )}
-              {authMode === 'google' ? 'Sign in with Google' : 'Sign in'}
+              {authMode === 'google' ? 'Logg inn med Google' : 'Logg inn'}
             </a>
             <p className={styles.orContinue}>
-              or{' '}
+              eller{' '}
               <button
                 type="button"
                 className={styles.continueAnonBtn}
                 onClick={() => setShowUpload(true)}
               >
-                continue without signing in
+                fortsett uten å logge inn
               </button>
             </p>
           </div>
