@@ -1,16 +1,26 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useParty } from '../context/PartyContext.jsx'
 import { api } from '../api/client.js'
 import styles from './UploadPage.module.css'
 
+// TR-S17: validate redirect targets — mirrors backend isSafePath
+function isSafePath(p) {
+  if (typeof p !== 'string') return false
+  if (!p.startsWith('/')) return false
+  if (p.startsWith('//')) return false
+  if (p.startsWith('/\\')) return false
+  if (p.includes(':')) return false
+  return true
+}
+
 const MAX_FILES = 20
 const MAX_FILE_SIZE = 50 * 1024 * 1024  // 50 MB
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp'])
 
 export default function UploadPage() {
-  const { user, refetch: refreshUser } = useAuth()
+  const { user, loading: authLoading, refetch: refreshUser } = useAuth()
   const { partyKey } = useParams()
   const partyCtx = useParty()
   const party = partyCtx?.party ?? null
@@ -21,6 +31,26 @@ export default function UploadPage() {
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [joining, setJoining] = useState(false)
   const showBanner = user && partyKey && !hasRole && !bannerDismissed
+
+  // Sign-in prompt: shown to anonymous visitors until they choose to continue or sign in.
+  // Initialised false; flipped to true once we know the user is logged in, or when
+  // they click "continue without signing in".  Never resets during the session.
+  const [showUpload, setShowUpload] = useState(false)
+  useEffect(() => {
+    if (user) setShowUpload(true)
+  }, [user])
+
+  // Auth mode — needed to build the correct sign-in href (TR-S17)
+  const [authMode, setAuthMode] = useState(null)
+  useEffect(() => {
+    api.get('/api/auth/mode').then((d) => setAuthMode(d.mode)).catch(() => setAuthMode('local'))
+  }, [])
+
+  const uploadPath = partyKey ? `/p/${partyKey}/upload` : '/upload'
+  const safeUploadPath = isSafePath(uploadPath) ? uploadPath : '/'
+  const loginHref = authMode === 'google'
+    ? `/api/auth/google?next=${encodeURIComponent(safeUploadPath)}`
+    : `/login?next=${encodeURIComponent(safeUploadPath)}`
 
   async function handleJoin() {
     setJoining(true)
@@ -184,6 +214,41 @@ export default function UploadPage() {
     )
   }
 
+  // Show sign-in prompt to anonymous visitors before revealing the upload form
+  if (!authLoading && !user && !showUpload) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <h1 className={styles.title}>Last opp bilder</h1>
+          <div className={styles.signinPrompt}>
+            <p className={styles.signinMessage}>
+              Sign in to have your photos linked to your profile
+            </p>
+            <a href={loginHref} className={styles.signinBtn}>
+              {authMode === 'google' && (
+                <img src="/google-logo.svg" alt="" width={20} height={20} />
+              )}
+              {authMode === 'google' ? 'Sign in with Google' : 'Sign in'}
+            </a>
+            <p className={styles.orContinue}>
+              or{' '}
+              <button
+                type="button"
+                className={styles.continueAnonBtn}
+                onClick={() => setShowUpload(true)}
+              >
+                continue without signing in
+              </button>
+            </p>
+          </div>
+          <p className={styles.backLink}>
+            <Link to={partyKey ? `/p/${partyKey}` : '/'}>← Tilbake til forsiden</Link>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   if (result) {
     return (
       <div className={styles.page}>
@@ -199,18 +264,8 @@ export default function UploadPage() {
               Last opp flere bilder
             </button>
 
-            {user ? (
+            {user && (
               <Link to={partyKey ? `/p/${partyKey}/gallery` : '/gallery'} className={styles.btnSecondary}>Se galleriet</Link>
-            ) : (
-              <div className={styles.nudge}>
-                <p>
-                  <strong>Vil du se bildene fra festen?</strong>
-                  <br />
-                  <Link to={partyKey ? `/login?next=${encodeURIComponent(`/p/${partyKey}/gallery`)}` : '/login?next=/gallery'}>
-                    Logg inn for å se galleriet →
-                  </Link>
-                </p>
-              </div>
             )}
           </div>
         </div>
