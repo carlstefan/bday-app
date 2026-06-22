@@ -31,7 +31,7 @@ const idParam = z.object({ id: z.coerce.number().int().positive() })
 // Visible non-hidden photos for this party. Requires auth + at least guest role.
 router.get('/photos', requireAuth, requirePartyRole('guest'), (req, res) => {
   const page  = Math.max(1, parseInt(req.query.page)  || 1)
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 500))
+  const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit) || 500))
   const offset = (page - 1) * limit
 
   const photos = db.prepare(`

@@ -73,7 +73,7 @@ router.post('/', uploadLimiter, diskCheck, handleUpload, async (req, res, next) 
 // at flag time; other-user flags leave the photo visible until admin acts.
 router.get('/', requireAuth, (req, res) => {
   const page  = Math.max(1, parseInt(req.query.page)  || 1)
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50))
+  const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit) || 50))
   const offset = (page - 1) * limit
 
   const photos = db
