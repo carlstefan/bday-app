@@ -24,6 +24,10 @@ export function usePinchZoom({ onPrev, onNext, onDismiss } = {}) {
   // Live display state
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 })
 
+  // True while a finger is actively dragging/pinching — disables the CSS
+  // transition so the image tracks the touch 1:1, with no lag.
+  const [isInteracting, setIsInteracting] = useState(false)
+
   // Per-gesture tracking
   const gesture = useRef({
     pinching:     false,
@@ -47,6 +51,7 @@ export function usePinchZoom({ onPrev, onNext, onDismiss } = {}) {
 
   const onTouchStart = useCallback((e) => {
     const g = gesture.current
+    setIsInteracting(true)
     if (e.touches.length >= 2) {
       g.pinching   = true
       g.dragStart  = null
@@ -78,12 +83,21 @@ export function usePinchZoom({ onPrev, onNext, onDismiss } = {}) {
       const dx = e.touches[0].clientX - g.dragStart.x
       const dy = e.touches[0].clientY - g.dragStart.y
       setTransform({ scale: com.scale, x: com.x + dx, y: com.y + dy })
+    } else if (e.touches.length === 1 && g.swipeStart) {
+      // Live-follow the finger so the swipe feels immediate instead of
+      // only reacting once the gesture finishes.
+      const dx = e.touches[0].clientX - g.swipeStart.x
+      const dy = e.touches[0].clientY - g.swipeStart.y
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        setTransform({ scale: 1, x: dx, y: 0 })
+      }
     }
   }, [])
 
   const onTouchEnd = useCallback((e) => {
     const g   = gesture.current
     const com = committed.current
+    setIsInteracting(false)
 
     if (e.touches.length < 2 && g.pinching) {
       // Pinch ended
@@ -114,6 +128,10 @@ export function usePinchZoom({ onPrev, onNext, onDismiss } = {}) {
           else        onPrev?.()
         } else if (ady > adx && dy >= DISMISS_DIST) {
           onDismiss?.()
+        } else {
+          // Below threshold — snap back to center instead of leaving the
+          // image stranded mid-drag.
+          apply(1, 0, 0)
         }
       }
 
@@ -135,6 +153,7 @@ export function usePinchZoom({ onPrev, onNext, onDismiss } = {}) {
 
   return {
     transform,
+    isInteracting,
     reset,
     handlers: { onTouchStart, onTouchMove, onTouchEnd },
     onWheel,  // attached via ref (passive: false) — see FullScreenView

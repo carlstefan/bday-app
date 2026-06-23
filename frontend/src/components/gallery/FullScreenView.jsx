@@ -29,11 +29,23 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose, user
   }, [showOverlay, currentIndex])
 
   // ── Pinch/swipe/zoom ──────────────────────────────────────────────────────
-  const { transform, reset, handlers, onWheel } = usePinchZoom({
+  const { transform, isInteracting, reset, handlers, onWheel } = usePinchZoom({
     onPrev:    () => { reset(); onNavigate(Math.max(0, currentIndex - 1)) },
     onNext:    () => { reset(); onNavigate(Math.min(photos.length - 1, currentIndex + 1)) },
     onDismiss: onClose,
   })
+
+  // Preload the neighboring full-size images so prev/next feels instant
+  // instead of waiting on a fresh network request each time.
+  useEffect(() => {
+    const base = partyKey ? `/api/p/${partyKey}/photos` : '/api/photos'
+    ;[currentIndex - 1, currentIndex + 1].forEach((i) => {
+      const neighbor = photos[i]
+      if (!neighbor) return
+      const img = new Image()
+      img.src = `${base}/${neighbor.id}/image`
+    })
+  }, [currentIndex, photos, partyKey])
 
   // Attach wheel listener (non-passive, so we can preventDefault)
   useEffect(() => {
@@ -111,6 +123,7 @@ export function FullScreenView({ photos, currentIndex, onNavigate, onClose, user
         className={styles.imageWrap}
         style={{
           transform:    `scale(${transform.scale}) translate(${transform.x / transform.scale}px, ${transform.y / transform.scale}px)`,
+          transition:   isInteracting ? 'none' : 'transform 0.2s ease-out',
           cursor:       isZoomed ? 'grab' : 'zoom-out',
           touchAction:  'none',
         }}

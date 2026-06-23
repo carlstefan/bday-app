@@ -179,18 +179,18 @@ export default function GalleryPage() {
         </button>
       )}
 
-      {/* ── Grid view — default on all screen sizes (FR-G07) ─── */}
-      {!showFullScreen && (
-        <GridView
-          photos={displayPhotos}
-          currentIndex={currentIndex}
-          onPhotoClick={handleGridPhotoClick}
-          isMobile={false}
-          isHiddenMode={isHiddenMode}
-          onUnhide={handleUnhide}
-          partyKey={partyKey}
-        />
-      )}
+      {/* ── Grid view — default on all screen sizes (FR-G07) ───
+          Always mounted (even under the full-screen overlay) so the page's
+          scroll position survives opening/closing the full-screen view. */}
+      <GridView
+        photos={displayPhotos}
+        currentIndex={currentIndex}
+        onPhotoClick={handleGridPhotoClick}
+        isMobile={false}
+        isHiddenMode={isHiddenMode}
+        onUnhide={handleUnhide}
+        partyKey={partyKey}
+      />
 
       {/* ── Full-screen overlay (FR-G06) ─── */}
       {showFullScreen && (
