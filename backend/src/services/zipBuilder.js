@@ -17,7 +17,12 @@ function zipEntryName(photo) {
     .slice(0, 40)
 
   const ext = path.extname(photo.filename) || '.jpg'
-  return `${stamp}_${safeUploader}${ext}`
+  // Append the short UUID so entries stay unique. Without it, two photos from
+  // the same uploader with the same second-level timestamp (burst shots, or
+  // several files lacking EXIF that fall back to 'unknown') would produce
+  // identical names and silently overwrite each other on extraction.
+  const shortId = path.parse(photo.filename).name.slice(0, 8)
+  return `${stamp}_${safeUploader}_${shortId}${ext}`
 }
 
 /**
