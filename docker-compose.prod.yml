@@ -5,8 +5,13 @@ services:
   nginx:
     image: nginx:1.25-alpine
     ports:
+      # Bind both address families explicitly. Docker's userland proxy only
+      # binds 0.0.0.0 by default, so without the IPv6 lines clients that
+      # resolve the AAAA record get "connection refused" over IPv6.
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
+      - "[2001:880:0:21::1d8]:80:80"
+      - "[2001:880:0:21::1d8]:443:443"
     volumes:
       - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
       # Let's Encrypt certificates
@@ -15,6 +20,11 @@ services:
       - certbot-www:/var/www/certbot:ro
       # Built frontend static files
       - frontend-dist:/app/dist:ro
+    # Reload every 6h so a certbot-renewed certificate is picked up without a
+    # manual restart. nginx stays PID 1 (foreground); the reload loop runs in
+    # the background. This replaces the old cross-container `docker exec` hook,
+    # which never worked (the certbot image has no `docker` binary).
+    command: sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
     depends_on:
       - backend
 
@@ -39,8 +49,13 @@ services:
     volumes:
       - letsencrypt:/etc/letsencrypt
       - certbot-www:/var/www/certbot
-    # Run manually: docker compose run certbot certonly --webroot ...
-    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --deploy-hook 'docker exec app-nginx-1 nginx -s reload'; sleep 12h & wait $${!}; done"
+    # Initial issue (run once, manually):
+    #   docker compose run certbot certonly --webroot -w /var/www/certbot -d cs.grotter.net
+    # Renewal uses the webroot authenticator; nginx serves /.well-known/acme-challenge/
+    # from the shared certbot-www volume and reloads itself on a timer (see nginx above),
+    # so no cross-container hook is needed. The previous --deploy-hook 'docker exec ...'
+    # could never run because the certbot image has no `docker` binary.
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done"
 
 volumes:
   letsencrypt:
