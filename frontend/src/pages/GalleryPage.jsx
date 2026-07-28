@@ -42,7 +42,7 @@ export default function GalleryPage() {
 
   const photosUrl = isHiddenMode
     ? `/api/p/${partyKey}/admin/hidden-photos`
-    : `/api/p/${partyKey}/photos?limit=500`
+    : `/api/p/${partyKey}/photos?limit=1000`
 
   const { photos, loading, error, setPhotos } = usePhotos(photosUrl)
 
