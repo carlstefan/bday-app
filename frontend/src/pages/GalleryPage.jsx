@@ -7,8 +7,19 @@ import { usePhotos } from '../hooks/usePhotos.js'
 import { useAdminBadge } from '../hooks/useAdminBadge.js'
 import { FullScreenView } from '../components/gallery/FullScreenView.jsx'
 import { GridView }       from '../components/gallery/GridView.jsx'
+import { GalleryFilters } from '../components/gallery/GalleryFilters.jsx'
 import ThreeDotMenu from '../components/ThreeDotMenu.jsx'
 import styles from './GalleryPage.module.css'
+
+// FR-G16: identify uploaders by account when logged in, else by the free-text
+// name they entered at upload time (falling back to "Anonym" if left blank).
+function uploaderKey(photo) {
+  return photo.user_id != null ? `u:${photo.user_id}` : `a:${photo.uploader_name || ''}`
+}
+function uploaderLabel(photo) {
+  if (photo.user_id != null) return photo.uploader_display_name || photo.uploader_name || 'Ukjent bruker'
+  return photo.uploader_name?.trim() || 'Anonym'
+}
 
 export default function GalleryPage() {
   const { user }              = useAuth()
@@ -38,10 +49,45 @@ export default function GalleryPage() {
   // FR-G09: own-photos filter
   const [ownOnly, setOwnOnly] = useState(false)
 
+  // FR-G16: uploader filter (multi-select)
+  const [selectedUploaders, setSelectedUploaders] = useState(new Set())
+  // FR-G17: sort mode — capture time, or by uploader (then capture time within each uploader)
+  const [sortBy, setSortBy] = useState('time') // 'time' | 'user'
+  const [sortDir, setSortDir] = useState('asc')
+
+  const uploaderOptions = useMemo(() => {
+    const map = new Map()
+    for (const p of photos) {
+      const key = uploaderKey(p)
+      const existing = map.get(key)
+      if (existing) existing.count += 1
+      else map.set(key, { key, label: uploaderLabel(p), count: 1 })
+    }
+    return [...map.values()].sort((a, b) => a.label.localeCompare(b.label, 'nb'))
+  }, [photos])
+
+  const hasActiveFilter = ownOnly || selectedUploaders.size > 0
+
   const displayPhotos = useMemo(() => {
-    if (!ownOnly || !user) return photos
-    return photos.filter((p) => p.user_id === user.id)
-  }, [photos, ownOnly, user])
+    let result = photos
+    if (ownOnly && user) result = result.filter((p) => p.user_id === user.id)
+    if (selectedUploaders.size > 0) result = result.filter((p) => selectedUploaders.has(uploaderKey(p)))
+
+    if (sortBy === 'user') {
+      // Primary: uploader name (direction-toggled). Secondary: capture time, always chronological.
+      result = [...result].sort((a, b) => {
+        const labelCmp = uploaderLabel(a).localeCompare(uploaderLabel(b), 'nb')
+        if (labelCmp !== 0) return sortDir === 'asc' ? labelCmp : -labelCmp
+        const at = a.captured_at || a.created_at
+        const bt = b.captured_at || b.created_at
+        return at < bt ? -1 : at > bt ? 1 : 0
+      })
+    } else if (sortDir === 'desc') {
+      // Server already returns capture-time ascending; reverse for descending.
+      result = [...result].reverse()
+    }
+    return result
+  }, [photos, ownOnly, user, selectedUploaders, sortBy, sortDir])
 
   // FR-A04: pending badge (managers/owners/super admin)
   const { pendingCount } = useAdminBadge(canModerate, partyKey ? `/api/p/${partyKey}/admin/pending-count` : null)
@@ -51,7 +97,7 @@ export default function GalleryPage() {
   const [showFullScreen, setShowFullScreen] = useState(false)
 
   // Reset index when filter or photo list changes
-  useEffect(() => { setCurrentIndex(0) }, [ownOnly])
+  useEffect(() => { setCurrentIndex(0) }, [ownOnly, selectedUploaders, sortBy, sortDir])
   useEffect(() => {
     if (displayPhotos.length > 0) {
       setCurrentIndex((i) => Math.min(i, displayPhotos.length - 1))
@@ -125,13 +171,13 @@ export default function GalleryPage() {
     return (
       <div className={styles.state}>
         <p className={styles.emptyMsg}>
-          {ownOnly ? 'Du har ingen bilder ennå.' : isHiddenMode ? 'Ingen skjulte bilder.' : 'Ingen bilder ennå.'}
+          {hasActiveFilter ? 'Ingen bilder matcher filteret.' : isHiddenMode ? 'Ingen skjulte bilder.' : 'Ingen bilder ennå.'}
         </p>
-        {!isHiddenMode && !ownOnly && (
+        {!isHiddenMode && !hasActiveFilter && (
           <Link to={`/p/${partyKey}/upload`} className={styles.uploadLink}>Last opp det første! →</Link>
         )}
-        {ownOnly && (
-          <button className={styles.ownOnlyToggle} onClick={() => setOwnOnly(false)}>
+        {hasActiveFilter && (
+          <button className={styles.ownOnlyToggle} onClick={() => { setOwnOnly(false); setSelectedUploaders(new Set()) }}>
             Vis alle bilder
           </button>
         )}
@@ -154,9 +200,32 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* 3-dot menu for logged-in users */}
+      {/* Top-right control row: uploader filter/sort, own-photos toggle, 3-dot menu */}
       {user && (
-        <div className={styles.menuCorner}>
+        <div className={styles.topBar}>
+          {!isHiddenMode && (
+            <GalleryFilters
+              uploaders={uploaderOptions}
+              selected={selectedUploaders}
+              onChangeSelected={setSelectedUploaders}
+              sortBy={sortBy}
+              onChangeSortBy={setSortBy}
+              sortDir={sortDir}
+              onChangeSortDir={setSortDir}
+            />
+          )}
+
+          {/* FR-G09: Own-photos filter (logged-in users, not in hidden mode) */}
+          {!isHiddenMode && (
+            <button
+              className={`${styles.ownOnlyBtn} ${ownOnly ? styles.ownOnlyActive : ''}`}
+              onClick={() => setOwnOnly((v) => !v)}
+              title={ownOnly ? 'Vis alle bilder' : 'Vis bare mine bilder'}
+            >
+              {ownOnly ? '👤 Mine' : '👥 Alle'}
+            </button>
+          )}
+
           <ThreeDotMenu partyKey={partyKey} />
         </div>
       )}
@@ -166,17 +235,6 @@ export default function GalleryPage() {
         <Link to={`/p/${partyKey}/admin`} className={styles.adminBadge} title="Ventende slettingsforespørsler">
           🔔 {pendingCount}
         </Link>
-      )}
-
-      {/* FR-G09: Own-photos filter (logged-in users, not in hidden mode) */}
-      {user && !isHiddenMode && (
-        <button
-          className={`${styles.ownOnlyBtn} ${ownOnly ? styles.ownOnlyActive : ''}`}
-          onClick={() => setOwnOnly((v) => !v)}
-          title={ownOnly ? 'Vis alle bilder' : 'Vis bare mine bilder'}
-        >
-          {ownOnly ? '👤 Mine' : '👥 Alle'}
-        </button>
       )}
 
       {/* ── Grid view — default on all screen sizes (FR-G07) ───

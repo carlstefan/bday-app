@@ -36,8 +36,9 @@ router.get('/photos', requireAuth, requirePartyRole('guest'), (req, res) => {
 
   const photos = db.prepare(`
     SELECT p.id, p.filename, p.original_name, p.uploader_name, p.caption,
-           p.user_id, p.captured_at, p.created_at
+           p.user_id, p.captured_at, p.created_at, u.display_name AS uploader_display_name
     FROM photos p
+    LEFT JOIN users u ON u.id = p.user_id
     WHERE p.party_id = ? AND p.is_hidden = 0
     ORDER BY COALESCE(p.captured_at, p.created_at) ASC
     LIMIT ? OFFSET ?

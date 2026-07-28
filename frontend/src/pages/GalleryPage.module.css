@@ -6,12 +6,15 @@
   background: #fdecd8;          /* warm peach — matches grid background */
 }
 
-/* 3-dot menu anchor in gallery */
-.menuCorner {
+/* Top-right control row: uploader filter/sort, own-photos toggle, 3-dot menu */
+.topBar {
   position: fixed;
   top: 1rem;
   right: 1rem;
   z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
 }
 
 /* ── Loading / error / empty states ───────────────────────────────────── */
@@ -80,10 +83,6 @@
 /* ── FR-G09: Own-only filter toggle ────────────────────────────────────── */
 
 .ownOnlyBtn {
-  position: fixed;
-  top: 1rem;
-  right: 4.5rem;
-  z-index: 100;
   background: rgba(255, 251, 245, 0.88);
   border: 1.5px solid #e8d0ba;
   color: #7a6655;
